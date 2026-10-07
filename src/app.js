@@ -1,18 +1,20 @@
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/auth.routes");
-
+const testRoutes = require("./routes/test.routes"); // temproary purpose
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
 app.get("/health",(req,res)=>{res.status(200).json({
-        success: true,
+        success: true,            // Backend check karne ke liye
         message: "backend is running properly"});
 });
 
 app.use("/api/auth",authRoutes);
+
+app.use("/api/test",testRoutes);
 
 app.use((req,res)=>{res.status(404).json({
      success: false,
