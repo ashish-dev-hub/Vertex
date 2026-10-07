@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/auth.routes");
-const testRoutes = require("./routes/test.routes"); // temproary purpose
+const testRoutes = require("./routes/test.route"); // temporary purpose
 const app = express();
 
 app.use(cors());
