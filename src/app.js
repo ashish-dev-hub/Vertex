@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/auth.routes");
-const testRoutes = require("./routes/test.route"); // temporary purpose
+
 const app = express();
 
 app.use(cors());
@@ -14,7 +14,6 @@ app.get("/health",(req,res)=>{res.status(200).json({
 
 app.use("/api/auth",authRoutes);
 
-app.use("/api/test",testRoutes);
 
 app.use((req,res)=>{res.status(404).json({
      success: false,
