@@ -388,7 +388,7 @@ const StudentDashboard = () => {
                     {profile.college || "Add your college details"}
                     {profile.degree ? ` · ${profile.degree}` : ""}
                     {profile.graduationYear
-                      ? ` · Class of ${profile.graduationYear}`
+                      ? ` · Batch of ${profile.graduationYear}`
                       : ""}
                   </p>
 

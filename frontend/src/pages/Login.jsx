@@ -1,188 +1,147 @@
- import React, { useState } from "react";
-import {
-  ArrowLeft,
-  BriefcaseBusiness,
-  GraduationCap,
-  Eye,
-  EyeOff,
-} from "lucide-react";
-
-import { Link } from "react-router-dom";
+ import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { login } from "../api/auth";
 
 const Login = () => {
+  const navigate = useNavigate();
 
-  const [role, setRole] = useState("student");
-  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    role: "student",
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passwordRegex = /^(?=.*\d).{8,}$/;
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    if (!emailRegex.test(formData.email)) {
+      alert("Please enter a valid email");
+      return;
+    }
+
+    if (!passwordRegex.test(formData.password)) {
+      alert(
+        "Password must be at least 8 characters and contain a number"
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await login({
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+      });
+
+      console.log("Login response:", response.data);
+
+      alert("Login successful");
+
+      // Backend response me user.role check
+      const user = response.data.user;
+
+      if (user?.role === "recruiter") {
+        navigate("/recruiter/dashboard");
+      } else if (user?.role === "student") {
+        navigate("/student/dashboard");
+      } else {
+        // Fallback
+        if (formData.role === "recruiter") {
+          navigate("/recruiter/dashboard");
+        } else {
+          navigate("/student/dashboard");
+        }
+      }
+    } catch (error) {
+      console.log("Login error:", error);
+
+      alert(
+        error.response?.data?.message ||
+          "Login failed. Please check your credentials."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+      <form
+        onSubmit={handleLogin}
+        className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg border border-gray-200"
+      >
+        <h1 className="text-center text-2xl font-bold text-gray-900 mb-6">
+          WELCOME BACK
+        </h1>
 
-      {/* NAVBAR */}
-      <nav className="flex h-16 items-center border-b border-slate-200 bg-white px-6">
+        {/* Role */}
+        <select
+          name="role"
+          value={formData.role}
+          onChange={handleChange}
+          className="w-full mb-4 p-3 rounded-lg bg-white text-gray-900 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="student">Student</option>
+          <option value="recruiter">Recruiter</option>
+        </select>
 
-        <Link to="/" className="flex items-center gap-2">
+        {/* Email */}
+        <input
+          type="email"
+          name="email"
+          placeholder="Enter your email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+          className="w-full mb-4 p-3 rounded-lg bg-white text-gray-900 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
-            <BriefcaseBusiness size={20} className="text-white" />
-          </div>
+        {/* Password */}
+        <input
+          type="password"
+          name="password"
+          placeholder="Enter password"
+          value={formData.password}
+          onChange={handleChange}
+          required
+          className="w-full mb-6 p-3 rounded-lg bg-white text-gray-900 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
-          <span className="text-xl font-bold text-slate-900">
-            InternMatch
-            <span className="text-blue-600"> AI</span>
-          </span>
+        {/* Login Button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full p-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+        >
+          {loading ? "Logging in..." : "Login"}
+        </button>
 
-        </Link>
-
-      </nav>
-
-      {/* MAIN */}
-      <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-6 py-12">
-
-        <div className="w-full max-w-md">
-
-          {/* BACK */}
-          <Link
-            to="/"
-            className="mb-6 flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600"
+        {/* Signup Link */}
+        <p className="text-center text-gray-600 mt-5">
+          Don't have an account?{" "}
+          <button
+            type="button"
+            onClick={() => navigate("/signup")}
+            className="text-blue-600 font-semibold hover:underline"
           >
-            <ArrowLeft size={17} />
-            Back
-          </Link>
-
-          {/* HEADING */}
-          <div className="mb-8 text-center">
-
-            <h1 className="text-3xl font-bold text-slate-900">
-              Welcome back
-            </h1>
-
-            <p className="mt-2 text-slate-500">
-              Login to continue to InternMatch AI
-            </p>
-
-          </div>
-
-          {/* LOGIN CARD */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
-
-            {/* ROLE */}
-            <div className="mb-7">
-
-              <p className="mb-3 text-sm font-semibold text-slate-700">
-                Login as
-              </p>
-
-              <div className="grid grid-cols-2 gap-3">
-
-                {/* STUDENT */}
-                <button
-                  onClick={() => setRole("student")}
-                  className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition ${
-                    role === "student"
-                      ? "border-blue-600 bg-blue-50 text-blue-600"
-                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  <GraduationCap size={19} />
-                  Student
-                </button>
-
-                {/* RECRUITER */}
-                <button
-                  onClick={() => setRole("recruiter")}
-                  className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition ${
-                    role === "recruiter"
-                      ? "border-blue-600 bg-blue-50 text-blue-600"
-                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  <BriefcaseBusiness size={18} />
-                  Recruiter
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* EMAIL */}
-            <div className="mb-5">
-
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Email address
-              </label>
-
-              <input
-                type="email"
-                placeholder="you@example.com"
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-              />
-
-            </div>
-
-            {/* PASSWORD */}
-            <div className="mb-6">
-
-              <div className="mb-2 flex items-center justify-between">
-
-                <label className="text-sm font-medium text-slate-700">
-                  Password
-                </label>
-
-                <button className="text-xs font-medium text-blue-600 hover:underline">
-                  Forgot password?
-                </button>
-
-              </div>
-
-              <div className="relative">
-
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 pr-11 text-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  {showPassword ? (
-                    <EyeOff size={19} />
-                  ) : (
-                    <Eye size={19} />
-                  )}
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* LOGIN BUTTON */}
-            <button className="w-full rounded-xl bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700">
-              Login as {role === "student" ? "Student" : "Recruiter"}
-            </button>
-
-            {/* SIGNUP */}
-            <p className="mt-6 text-center text-sm text-slate-500">
-
-              Don't have an account?{" "}
-
-              <Link
-                to="/signup"
-                className="font-semibold text-blue-600 hover:underline"
-              >
-                Create account
-              </Link>
-
-            </p>
-
-          </div>
-
-        </div>
-
-      </main>
-
+            Sign up
+          </button>
+        </p>
+      </form>
     </div>
   );
 };
