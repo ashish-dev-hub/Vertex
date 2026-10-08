@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/auth.routes");
 const studentRoutes = require("./routes/student.routes");
+const recruiterRoutes = require("./routes/recruiter.routes");
 
 const app = express();
 
@@ -16,6 +17,8 @@ app.get("/health",(req,res)=>{res.status(200).json({
 app.use("/api/auth",authRoutes);
 
 app.use("/api/student", studentRoutes);
+
+app.use("/api/recruiter", recruiterRoutes);
 
 app.use((req,res)=>{res.status(404).json({
      success: false,
