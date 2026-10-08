@@ -1,7 +1,4 @@
-"""
-loader.py - loads all models ONCE and holds the scoring functions.
-The API files only call these functions.
-"""
+
 import os
 import re
 from pathlib import Path
@@ -11,27 +8,24 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
-# ---------------- settings ----------------
 MODEL_DIR = Path(os.getenv("MODEL_DIR", Path(__file__).resolve().parent.parent / "models"))
 
-THRESHOLD = 0.5                                                  # suitability >= 0.5 => suitable
-WEIGHTS = {"classifier": 0.50, "skill": 0.30, "salary": 0.20}    # suitability / skill+job title / salary
-SALARY_MIN, SALARY_MAX = 2, 30                                   # used only if salary_score_scaler.pkl is missing
-
-# ---------------- supervised models ----------------
+THRESHOLD = 0.5                                                  
+WEIGHTS = {"classifier": 0.50, "skill": 0.30, "salary": 0.20}    
+SALARY_MIN, SALARY_MAX = 2, 30                                   
+#supervised model
 clf = joblib.load(MODEL_DIR / "xgboost_classifier_best.pkl")
 reg = joblib.load(MODEL_DIR / "linear_regression_salary.pkl")
 _scaler_file = MODEL_DIR / "salary_score_scaler.pkl"
 salary_scaler = joblib.load(_scaler_file) if _scaler_file.exists() else None
 
-# ---------------- recommender (unsupervised) ----------------
+#recommender-(unsupervised)
 model = joblib.load(MODEL_DIR / "recommender.pkl")
 tfidf = model["tfidf"]
 km = model["km"]
 cluster_role = model["cluster_roles"]
 jobs = model["jobs"]
 
-# "data science intern" -> ("Data Science Intern", "Python, SQL, ...")
 job_lookup = {str(t).strip().lower(): (str(t), str(s))
               for t, s in zip(jobs["job_title"], jobs["required_skills"].fillna(""))}
 job_titles = [v[0] for v in job_lookup.values()]
@@ -50,7 +44,6 @@ def recommand(user_skills, n):
 
 
 def get_fit_score(user_skills, target_job_title, job_skills=None):
-    """skills vs job similarity (0 to 1). job_skills=None -> take them from recommender.pkl"""
     if job_skills is None:
         job_row = jobs[jobs["job_title"] == target_job_title]
         if job_row.empty:
@@ -64,20 +57,16 @@ def get_fit_score(user_skills, target_job_title, job_skills=None):
     return round(max(0.0, min(1.0, score)), 4)
 
 
-# ---------------- small helpers ----------------
 def tokens(x):
-    """'Python, SQL' (or a list) -> ['python', 'sql']"""
     parts = x if isinstance(x, list) else re.split(r"[,;|\n]+", str(x or ""))
     return [str(p).strip().lower() for p in parts if str(p).strip()]
 
 
 def skill_text(x):
-    """skills as one text string (what TF-IDF expects)"""
     return ", ".join(x) if isinstance(x, list) else str(x or "")
 
 
 def _num(v):
-    """anything -> number (list -> its length, bad value -> 0)"""
     if isinstance(v, list):
         return len(v)
     try:
@@ -87,21 +76,19 @@ def _num(v):
 
 
 def _cat(v):
-    """anything -> text (empty -> 'Unknown')"""
     if v is None:
         return "Unknown"
     return ", ".join(map(str, v)) if isinstance(v, list) else str(v)
 
 
 def prepare(data, pipe):
-    """dict -> one-row table with exactly the columns/types the model was trained on"""
     df = pd.DataFrame([data])
     columns = []
     for name, _, cols in pipe.named_steps["preprocessor"].transformers_:
         if name == "remainder":
             continue
         for col in cols:
-            if col not in df:                      # missing column -> default value
+            if col not in df:                      
                 df[col] = None
             df[col] = df[col].map(_num if name == "num" else _cat)
             columns.append(col)
@@ -115,20 +102,16 @@ def label(score):
     return "Weak match"
 
 
-# ---------------- the 3 scores ----------------
 def get_classifier_score(data_row):
-    """suitability: probability (0 to 1) that the candidate is suitable"""
     return round(float(clf.predict_proba(prepare(data_row, clf))[0][1]), 4)
 
 
 def get_salary(data_row):
-    """predicted salary in LPA (model predicts log1p(salary), so undo it)"""
     log_salary = reg.predict(prepare(data_row, reg))[0]
     return max(float(np.expm1(log_salary)), 0.0)
 
 
 def salary_fit(salary):
-    """salary -> score between 0 and 1"""
     if salary_scaler is not None:
         score = float(salary_scaler.transform([[salary]])[0][0])
     else:
@@ -136,9 +119,7 @@ def salary_fit(salary):
     return float(np.clip(score, 0, 1))
 
 
-# ---------------- final score ----------------
 def get_job_skills(data):
-    """-> (job title, required skills text). Recruiter's own skills win, else use recommender.pkl"""
     known = job_lookup.get(data.job_title.strip().lower())
     title = known[0] if known else data.job_title
     if data.required_skills:
@@ -149,7 +130,6 @@ def get_job_skills(data):
 
 
 def build_row(data, title, job_skills):
-    """form data + the extra columns the models were trained on"""
     needed = set(tokens(job_skills))
     common = set(tokens(data.candidate_skills)) & needed
 
@@ -158,8 +138,6 @@ def build_row(data, title, job_skills):
     row["skill_overlap"] = len(common)
     row["skill_coverage"] = len(common) / len(needed) if needed else 0.0
     row["experience_gap"] = data.years_experience - data.required_experience
-
-    # these two are guesses - replace with the formulas used to make your dataset
     if row["project_internship_score"] is None:
         row["project_internship_score"] = data.student_num_projects + 2 * data.student_internships
     if row["technical_activity_score"] is None:
@@ -170,7 +148,6 @@ def build_row(data, title, job_skills):
 
 
 def get_final_score(data):
-    """candidate + job -> final score from: suitability, salary, skill+job title"""
     title, job_skills = get_job_skills(data)
     row = build_row(data, title, job_skills)
 
