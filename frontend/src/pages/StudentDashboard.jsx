@@ -303,7 +303,7 @@ const StudentDashboard = () => {
                 Your career journey starts here
               </div>
 
-              <h1 className="text-2xl font-bold  text-red-400sm:text-3xl">
+              <h1 className="text-2xl font-bold  text-blue-400 sm:text-3xl">
                 Welcome back, {studentName}!
               </h1>
 

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
 import {
   BriefcaseBusiness,
   LayoutDashboard,
@@ -10,7 +11,6 @@ import {
   MapPin,
   IndianRupee,
   Clock,
-  MoreVertical,
   Eye,
   Edit,
   Hand,
@@ -19,41 +19,16 @@ import {
 const RecruiterDashboard = () => {
   const navigate = useNavigate();
 
-  const [jobs] = useState([
-    {
-      id: 1,
-      company: "TechNova",
-      role: "Frontend Developer Intern",
-      location: "Remote",
-      salary: "₹15,000/month",
-      duration: "3 Months",
-      applicants: 12,
-      status: "Active",
-    },
-    {
-      id: 2,
-      company: "DataSphere",
-      role: "Python Developer Intern",
-      location: "Noida",
-      salary: "₹12,000/month",
-      duration: "6 Months",
-      applicants: 8,
-      status: "Active",
-    },
-    {
-      id: 3,
-      company: "InsightWorks",
-      role: "Data Analyst Intern",
-      location: "Gurugram",
-      salary: "₹18,000/month",
-      duration: "4 Months",
-      applicants: 22,
-      status: "Closed",
-    },
-  ]);
+  const [jobs, setJobs] = useState([]);
+
+  // Load jobs from localStorage
+  useEffect(() => {
+    const savedJobs = JSON.parse(localStorage.getItem("recruiterJobs")) || [];
+    setJobs(savedJobs);
+  }, []);
 
   const totalApplicants = jobs.reduce(
-    (total, job) => total + job.applicants,
+    (total, job) => total + Number(job.applicants || 0),
     0
   );
 
@@ -62,6 +37,7 @@ const RecruiterDashboard = () => {
   ).length;
 
   const handleLogout = () => {
+    localStorage.removeItem("token");
     navigate("/login");
   };
 
@@ -72,13 +48,9 @@ const RecruiterDashboard = () => {
       <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6">
 
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
-              <BriefcaseBusiness
-                size={20}
-                className="text-white"
-              />
+              <BriefcaseBusiness size={20} className="text-white" />
             </div>
 
             <span className="text-xl font-bold text-slate-900">
@@ -87,7 +59,6 @@ const RecruiterDashboard = () => {
             </span>
           </Link>
 
-          {/* Right Side */}
           <div className="flex items-center gap-4">
             <div className="hidden text-right sm:block">
               <p className="text-sm font-semibold text-slate-800">
@@ -100,10 +71,7 @@ const RecruiterDashboard = () => {
             </div>
 
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-              <UserCircle
-                size={24}
-                className="text-blue-600"
-              />
+              <UserCircle size={24} className="text-blue-600" />
             </div>
           </div>
         </div>
@@ -113,12 +81,10 @@ const RecruiterDashboard = () => {
 
         {/* Sidebar */}
         <aside className="hidden min-h-[calc(100vh-64px)] w-64 border-r border-slate-200 bg-white md:block">
-
           <div className="flex h-full flex-col p-4">
 
             <div className="space-y-2">
 
-              {/* Dashboard */}
               <a
                 href="#dashboard"
                 className="flex items-center gap-3 rounded-lg bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-600"
@@ -127,7 +93,6 @@ const RecruiterDashboard = () => {
                 Dashboard
               </a>
 
-              {/* Post Job */}
               <Link
                 to="/recruiter/post-job"
                 className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-blue-600"
@@ -136,7 +101,6 @@ const RecruiterDashboard = () => {
                 Post Job
               </Link>
 
-              {/* My Jobs */}
               <a
                 href="#jobs"
                 className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-blue-600"
@@ -145,7 +109,6 @@ const RecruiterDashboard = () => {
                 My Jobs
               </a>
 
-              {/* Applicants */}
               <a
                 href="#applicants"
                 className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-blue-600"
@@ -154,7 +117,6 @@ const RecruiterDashboard = () => {
                 Applicants
               </a>
 
-              {/* Profile */}
               <a
                 href="#profile"
                 className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-blue-600"
@@ -165,7 +127,6 @@ const RecruiterDashboard = () => {
 
             </div>
 
-            {/* Logout */}
             <button
               onClick={handleLogout}
               className="mt-auto flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-red-500 transition hover:bg-red-50"
@@ -182,7 +143,6 @@ const RecruiterDashboard = () => {
           id="dashboard"
           className="flex-1 p-5 sm:p-8"
         >
-
           <div className="mx-auto max-w-7xl">
 
             {/* Header */}
@@ -193,9 +153,9 @@ const RecruiterDashboard = () => {
                   Recruiter Panel
                 </p>
 
-                <h1 className="text-3xl  flex items-center gap-2 font-bold text-slate-900">
-                  Welcome back, Recruiter 
-                    <Hand size={28} className="text-yellow-500" />
+                <h1 className="flex items-center gap-2 text-3xl font-bold text-slate-900">
+                  Welcome back, Recruiter
+                  <Hand size={28} className="text-yellow-500" />
                 </h1>
 
                 <p className="mt-2 text-slate-500">
@@ -218,15 +178,11 @@ const RecruiterDashboard = () => {
 
               {/* Total Jobs */}
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="mb-4 flex items-center justify-between">
-
-                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50">
-                    <BriefcaseBusiness
-                      size={22}
-                      className="text-blue-600"
-                    />
-                  </div>
-
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50">
+                  <BriefcaseBusiness
+                    size={22}
+                    className="text-blue-600"
+                  />
                 </div>
 
                 <p className="text-sm text-slate-500">
@@ -288,7 +244,7 @@ const RecruiterDashboard = () => {
                 </p>
 
                 <p className="mt-1 text-2xl font-bold text-slate-900">
-                  12
+                  0
                 </p>
               </div>
 
@@ -323,111 +279,142 @@ const RecruiterDashboard = () => {
               </div>
 
               {/* Job Cards */}
-              <div className="divide-y divide-slate-200">
 
-                {jobs.map((job) => (
-                  <div
-                    key={job.id}
-                    className="p-6 transition hover:bg-slate-50"
+              {jobs.length === 0 ? (
+
+                <div className="p-10 text-center">
+
+                  <BriefcaseBusiness
+                    size={45}
+                    className="mx-auto text-slate-300"
+                  />
+
+                  <h3 className="mt-4 text-lg font-semibold text-slate-800">
+                    No jobs posted yet
+                  </h3>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    Start by posting your first job.
+                  </p>
+
+                  <Link
+                    to="/recruiter/post-job"
+                    className="mt-5 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"
                   >
+                    <PlusCircle size={18} />
+                    Post Job
+                  </Link>
 
-                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                </div>
 
-                      {/* Job Info */}
-                      <div className="flex gap-4">
+              ) : (
 
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-50">
-                          <BriefcaseBusiness
-                            size={23}
-                            className="text-blue-600"
-                          />
-                        </div>
+                <div className="divide-y divide-slate-200">
 
-                        <div>
+                  {jobs.map((job) => (
 
-                          <div className="flex flex-wrap items-center gap-2">
+                    <div
+                      key={job.id}
+                      className="p-6 transition hover:bg-slate-50"
+                    >
 
-                            <h3 className="font-semibold text-slate-900">
-                              {job.role}
-                            </h3>
+                      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
-                            <span
-                              className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                                job.status === "Active"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-slate-100 text-slate-500"
-                              }`}
-                            >
-                              {job.status}
-                            </span>
+                        {/* Job Info */}
+                        <div className="flex gap-4">
+
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                            <BriefcaseBusiness
+                              size={23}
+                              className="text-blue-600"
+                            />
+                          </div>
+
+                          <div>
+
+                            <div className="flex flex-wrap items-center gap-2">
+
+                              <h3 className="font-semibold text-slate-900">
+                                {job.role}
+                              </h3>
+
+                              <span
+                                className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                                  job.status === "Active"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-slate-100 text-slate-500"
+                                }`}
+                              >
+                                {job.status}
+                              </span>
+
+                            </div>
+
+                            <p className="mt-1 text-sm font-medium text-slate-600">
+                              {job.company}
+                            </p>
+
+                            <div className="mt-3 flex flex-wrap gap-4 text-sm text-slate-500">
+
+                              <span className="flex items-center gap-1.5">
+                                <MapPin size={15} />
+                                {job.location}
+                              </span>
+
+                              <span className="flex items-center gap-1.5">
+                                <IndianRupee size={15} />
+                                {job.salary}
+                              </span>
+
+                              <span className="flex items-center gap-1.5">
+                                <Clock size={15} />
+                                {job.duration}
+                              </span>
+
+                            </div>
 
                           </div>
 
-                          <p className="mt-1 text-sm font-medium text-slate-600">
-                            {job.company}
-                          </p>
+                        </div>
 
-                          <div className="mt-3 flex flex-wrap gap-4 text-sm text-slate-500">
+                        {/* Applicant Info */}
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 
-                            <span className="flex items-center gap-1.5">
-                              <MapPin size={15} />
-                              {job.location}
-                            </span>
+                          <div className="rounded-lg bg-slate-50 px-4 py-2 text-center">
+                            <p className="text-lg font-bold text-slate-900">
+                              {job.applicants || 0}
+                            </p>
 
-                            <span className="flex items-center gap-1.5">
-                              <IndianRupee size={15} />
-                              {job.salary}
-                            </span>
-
-                            <span className="flex items-center gap-1.5">
-                              <Clock size={15} />
-                              {job.duration}
-                            </span>
-
+                            <p className="text-xs text-slate-500">
+                              Applicants
+                            </p>
                           </div>
 
+                          <button
+                            className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                          >
+                            <Eye size={16} />
+                            View
+                          </button>
+
+                          <button
+                            className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                          >
+                            <Edit size={16} />
+                            Edit
+                          </button>
+
                         </div>
-                      </div>
-
-                      {/* Applicant Info */}
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-
-                        <div className="rounded-lg bg-slate-50 px-4 py-2 text-center">
-                          <p className="text-lg font-bold text-slate-900">
-                            {job.applicants}
-                          </p>
-
-                          <p className="text-xs text-slate-500">
-                            Applicants
-                          </p>
-                        </div>
-
-                        <button
-                          className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                        >
-                          <Eye size={16} />
-                          View
-                        </button>
-
-                        <button
-                          className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                        >
-                          <Edit size={16} />
-                          Edit
-                        </button>
-
-                        <button className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
-                          <MoreVertical size={19} />
-                        </button>
 
                       </div>
 
                     </div>
 
-                  </div>
-                ))}
+                  ))}
 
-              </div>
+                </div>
+
+              )}
 
             </section>
 
@@ -468,6 +455,7 @@ const RecruiterDashboard = () => {
 
           </div>
         </main>
+
       </div>
     </div>
   );

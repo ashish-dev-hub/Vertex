@@ -13,13 +13,12 @@ const StudentProfile = () => {
     skills: "",
     experience: "Fresher",
     preferredRole: "Frontend Developer",
-    linkedin: "",
-    portfolio: "",
+    workMode: "On-site",
+    phone: "",
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-   
 
     setFormData({
       ...formData,
@@ -45,10 +44,9 @@ const StudentProfile = () => {
       ...formData,
 
       skills: formData.skills
-        .split(",")// comma ke basis pe skills ko tod denge ["React",JS,Html,Css]
- 
-        .map((skill) => skill.trim())// hr ek skill se extraa space remove krtaa hai 
-        .filter((skill) => skill !== ""),// empty skill remove krtaa hai 
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter((skill) => skill !== ""),
 
       profileCompleted: true,
     };
@@ -65,7 +63,6 @@ const StudentProfile = () => {
 
   return (
     <div className="min-h-screen bg-white text-black flex items-center justify-center px-4 py-10">
-
       <div className="w-full max-w-3xl bg-white border border-gray-300 rounded-2xl p-8 shadow-sm">
 
         {/* Heading */}
@@ -230,34 +227,36 @@ const StudentProfile = () => {
             />
           </div>
 
-          {/* LinkedIn */}
+          {/* Work Mode */}
           <div>
             <label className="block text-sm font-medium text-black mb-2">
-              LinkedIn Profile
+              Work Mode
             </label>
 
-            <input
-              type="url"
-              name="linkedin"
-              value={formData.linkedin}
+            <select
+              name="workMode"
+              value={formData.workMode}
               onChange={handleChange}
-              placeholder="https://linkedin.com/in/your-profile"
               className="w-full bg-white text-black border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-black"
-            />
+            >
+              <option value="On-site">On-site</option>
+              <option value="Remote">Remote</option>
+              <option value="Hybrid">Hybrid</option>
+            </select>
           </div>
 
-          {/* Portfolio */}
+          {/* Phone */}
           <div>
             <label className="block text-sm font-medium text-black mb-2">
-              Portfolio
+              Phone Number
             </label>
 
             <input
-              type="url"
-              name="portfolio"
-              value={formData.portfolio}
+              type="tel"
+              name="phone"
+              value={formData.phone}
               onChange={handleChange}
-              placeholder="https://yourportfolio.com"
+              placeholder="Enter your phone number"
               className="w-full bg-white text-black border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-black"
             />
           </div>
