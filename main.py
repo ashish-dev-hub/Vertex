@@ -5,38 +5,35 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 
-# --- 1. DEFINE CUSTOM TOKENIZER (Required by pickle) ---
 def comma_tokenizer(text):
-    if isinstance(text, str):
-        return [t.strip() for t in text.split(',')]
-    return text
+  return [s.strip().lower() for s in str(text).split(',')]
+
 
 current_module = sys.modules[__name__]
 setattr(current_module, 'comma_tokenizer', comma_tokenizer)
 
-# --- 2. INITIALIZE FASTAPI ---
+
 app = FastAPI(
     title="Salary Prediction API",
     description="API for predicting candidate salaries using an XGBoost pipeline.",
     version="1.0"
 )
 
-# Enable CORS so your frontend partner can connect easily (e.g. from React/Vue/Next.js)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust this to specific frontend URLs in production
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- 3. LOAD THE MODEL ---
+
 try:
     model = joblib.load('model.pkl')
 except Exception as e:
     raise RuntimeError(f"Failed to load model.pkl. Ensure it's in the directory. Error: {e}")
 
-# --- 4. DEFINE INPUT SCHEMA (All 20 Features) ---
+
 class CandidateInput(BaseModel):
     years_experience: float = Field(..., example=3.0)
     education: str = Field(..., example="Bachelor's")
@@ -59,7 +56,7 @@ class CandidateInput(BaseModel):
     student_weekly_study_hours: float = Field(..., example=20.0)
     student_experience_level: str = Field(..., example="Intermediate")
 
-# --- 5. ENDPOINTS ---
+
 @app.get("/")
 def read_root():
     return {"message": "Salary Prediction API is running!", "docs_url": "/docs"}
@@ -67,10 +64,10 @@ def read_root():
 @app.post("/predict")
 def predict_salary(data: CandidateInput):
     try:
-        # Convert Pydantic payload into a pandas DataFrame matching model's needs
+       
         input_df = pd.DataFrame([data.dict()])
         
-        # Run prediction through the pipeline
+       
         prediction = model.predict(input_df)
         estimated_salary = float(prediction[0])
         
