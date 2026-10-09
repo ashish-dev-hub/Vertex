@@ -4,6 +4,7 @@ const authRoutes = require("./routes/auth.routes");
 const studentRoutes = require("./routes/student.routes");
 const recruiterRoutes = require("./routes/recruiter.routes");
 const jobRoutes = require("./routes/job.routes");
+const applicationRoutes = require("./routes/application.routes");
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.use("/api/auth",authRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/recruiter", recruiterRoutes);
 app.use("/api/jobs", jobRoutes);
-
+app.use("/api/applications", applicationRoutes);
 
 
 app.use((req,res)=>{res.status(404).json({

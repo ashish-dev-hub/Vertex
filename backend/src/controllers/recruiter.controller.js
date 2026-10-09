@@ -1,4 +1,6 @@
 const RecruiterProfile = require("../models/RecruiterProfile");
+const Job = require("../models/Job");
+const Application = require("../models/Application");
 
 const createRecruiterProfile = async (req, res) => { // Create recruiter profile
     try { const userId = req.user._id;
@@ -109,8 +111,51 @@ const {companyName,companyDescription,industry,companyWebsite,companyLocation,ph
     }
 };
 
+const getRecruiterDashboard = async (req, res) => {
+    try {
+        const recruiterId = req.user._id;
+
+        const jobs = await Job.find({ recruiter: recruiterId }).select("_id status");
+        const jobIds = jobs.map((job) => job._id);
+
+        const totalJobs = jobs.length;
+        const activeJobs = jobs.filter((job) => job.status === "open").length;
+        const closedJobs = jobs.filter((job) => job.status === "closed").length;
+
+        const [totalApplications, pendingApplications, shortlistedApplications, acceptedApplications, rejectedApplications] = await Promise.all([
+            Application.countDocuments({ job: { $in: jobIds } }),
+            Application.countDocuments({ job: { $in: jobIds }, status: "pending" }),
+            Application.countDocuments({ job: { $in: jobIds }, status: "shortlisted" }),
+            Application.countDocuments({ job: { $in: jobIds }, status: "accepted" }),
+            Application.countDocuments({ job: { $in: jobIds }, status: "rejected" })
+        ]);
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                totalJobs,
+                activeJobs,
+                closedJobs,
+                totalApplications,
+                pendingApplications,
+                shortlistedApplications,
+                acceptedApplications,
+                rejectedApplications
+            }
+        });
+    } catch (error) {
+        console.error("Recruiter dashboard error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch recruiter dashboard"
+        });
+    }
+};
+
 module.exports = {
     createRecruiterProfile,
     getRecruiterProfile,
-    updateRecruiterProfile
+    updateRecruiterProfile,
+    getRecruiterDashboard
 };
