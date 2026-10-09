@@ -7,7 +7,7 @@ Flexible = Union[int, float, str, List[str]]
 class ClassificationInput(BaseModel):
     education: str
     years_experience: int= Field(ge=0)
-    candidate_location: str
+    candidate_location: Optional[str]=None
     candidate_preferred_work_mode: str
     student_year_of_study: float=Field(ge=0)
     student_cgpa: float = Field(gt=0)
@@ -17,18 +17,18 @@ class ClassificationInput(BaseModel):
     student_github_repos: float= Field(ge=0)
     student_hackathons_participated: float = Field(ge=0)
     student_coding_platform_rating: float = Field(ge=0)
-    student_weekly_study_hours: float = Field(ge=0)
-    student_career_label: str
-    student_experience_level: str
+    student_weekly_study_hours: Optional[float]=None
+    student_career_label: Optional[str]=None
+    student_experience_level: Optional[str]=None
     student_interests: Flexible
     job_title: str
     required_experience: int= Field(ge=0)
     job_location: str
     work_mode: str
     company_size: str
-    industry: str
+    industry: Optional[str]=None
     job_duration_months: int = Field(gt=0)
-    skill_coverage: float = Field(ge=0)
+    skill_coverage: Optional[float]=None
     experience_gap: Optional[float]= None 
     project_internship_score: Optional[float]= None 
     technical_activity_score: Optional[float]= None 
@@ -43,24 +43,24 @@ class ClassificationInput(BaseModel):
 class RegressionInput(BaseModel):
     education: str
     years_experience: int = Field(ge=0)
-    candidate_location: str
+    candidate_location: Optional[str]=None
     candidate_preferred_work_mode: str
     job_title: str
     required_experience: int= Field(ge=0)
     job_location: str
     work_mode: str
     company_size: str
-    industry: str
+    industry: Optional[str]=None
     job_duration_months: int= Field(gt=0)
-    skill_overlap: int = Field(ge=0)
+    skill_overlap: Optional[int]=None
     skill_coverage: float = Field(ge=0)
     student_year_of_study: float=Field(ge=0)
     student_cgpa: float = Field(gt=0)
     student_num_projects: float = Field(ge=0)
     student_internships: float = Field(ge=0)
     student_github_repos: float = Field(ge=0)
-    student_career_label: str
-    student_experience_level: str
+    student_career_label: Optional[str]=None
+    student_experience_level: Optional[str]=None
     experience_gap: Optional[float]= None 
     project_internship_score: Optional[float]= None 
     technical_activity_score: Optional[float]= None 
@@ -94,9 +94,9 @@ class FinalMatchInput(BaseModel):
     student_github_repos: float = Field(ge=0)
     student_hackathons_participated: float= Field(ge=0)
     student_coding_platform_rating: float = Field(default=0, ge=0)
-    student_weekly_study_hours: float = Field(default=0, ge=0)
+    student_weekly_study_hours: Optional[float]=None
 
-    student_career_label: str = "Unknown"
+    student_career_label: Optional[str]=None
     student_experience_level: str = "Unknown"
     student_interests: Flexible = "Unknown"
 
