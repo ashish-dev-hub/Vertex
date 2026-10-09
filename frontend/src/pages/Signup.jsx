@@ -78,7 +78,7 @@ const Signup = () => {
 
       // Recruiter
       else {
-        navigate("/recruiter/dashboard");
+        navigate("/recruiter/profile");
       }
     } catch (error) {
       console.log("Signup error:", error);

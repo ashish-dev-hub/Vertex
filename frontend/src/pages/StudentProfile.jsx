@@ -1,16 +1,12 @@
- import React, { useState } from "react";
+ 
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
-  BriefcaseBusiness,
-  GraduationCap,
-  Code2,
-  MapPin,
-  Phone,
-  User,
-  Sparkles,
-  CheckCircle2,
-  ArrowRight,
-} from "lucide-react";
+  getStudentProfile,
+  createStudentProfile,
+  updateStudentProfile,
+} from "../api/studentProfile";
 
 const StudentProfile = () => {
   const navigate = useNavigate();
@@ -19,576 +15,418 @@ const StudentProfile = () => {
     fullName: "",
     preferredLocation: "",
     college: "",
-    degree: "B.Tech",
-    graduationYear: "2029",
+    degree: "",
+    graduationYear: "",
     skills: "",
-    experience: "Fresher",
-    preferredRole: "Frontend Developer",
-    workMode: "On-site",
+    experience: "",
+    preferredRole: "",
+    workMode: "",
     phone: "",
   });
 
+  const [profileExists, setProfileExists] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // Backend se existing profile fetch karna
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await getStudentProfile();
+
+        const profile =
+          response.data?.profile ??
+          response.data?.data?.profile ??
+          response.data?.data ??
+          response.data;
+
+        if (profile && profile.fullName) {
+          setFormData({
+            fullName: profile.fullName || "",
+            preferredLocation: profile.preferredLocation || "",
+            college: profile.college || "",
+            degree: profile.degree || "",
+            graduationYear: profile.graduationYear
+              ? String(profile.graduationYear)
+              : "",
+            skills: Array.isArray(profile.skills)
+              ? profile.skills.join(", ")
+              : profile.skills || "",
+            experience: profile.experience || "",
+            preferredRole: profile.preferredRole || "",
+            workMode: profile.workMode || "",
+            phone: profile.phone || "",
+          });
+
+          setProfileExists(true);
+        }
+      } catch (err) {
+        if (err.response?.status === 401) {
+          setError("Session expired. Please log in again.");
+        } else if (err.response?.status !== 404) {
+          setError(
+            err.response?.data?.message ||
+              "Could not load profile. Please try again."
+          );
+        }
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  // Input fields ki values update karna
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
-  const handleSubmit = (e) => {
+  // Profile save karna
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !formData.fullName ||
-      !formData.college ||
-      !formData.graduationYear ||
-      !formData.skills ||
-      !formData.preferredRole
-    ) {
-      alert("Please complete all required fields.");
-      return;
+    setError("");
+    setSuccess("");
+    setSaving(true);
+
+    try {
+      const profileData = {
+        ...formData,
+        graduationYear: Number(formData.graduationYear),
+        skills: formData.skills
+          .split(",")
+          .map((skill) => skill.trim())
+          .filter(Boolean),
+      };
+
+      let response;
+
+      if (profileExists) {
+        response = await updateStudentProfile(profileData);
+      } else {
+        response = await createStudentProfile(profileData);
+      }
+
+      setProfileExists(true);
+
+      setSuccess(
+        response.data?.message || "Profile saved successfully!"
+      );
+
+      // Profile save hone ke baad dashboard par jaana
+      setTimeout(() => {
+        navigate("/student/dashboard");
+      }, 800);
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to save profile. Please try again."
+      );
+    } finally {
+      setSaving(false);
     }
-
-    const profile = {
-      ...formData,
-      skills: formData.skills
-        .split(",")
-        .map((skill) => skill.trim())
-        .filter((skill) => skill !== ""),
-      profileCompleted: true,
-    };
-
-    localStorage.setItem(
-      "studentProfile",
-      JSON.stringify(profile)
-    );
-
-    alert("Profile completed successfully!");
-
-    navigate("/student/dashboard");
   };
 
+  if (loadingProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <p className="text-lg font-medium text-blue-700">
+          Loading your profile...
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-scree `bg-linear-to-br` from-blue-50 via-white to-purple-100 flex items-center justify-center px-4 py-8 relative overflow-hidden">
-
-      {/* ================= BACKGROUND DECORATIONS ================= */}
-
-      <div className="absolute top-10 left-10 w-40 h-40 bg-blue-200/40 rounded-full blur-3xl"></div>
-
-      <div className="absolute bottom-10 right-10 w-56 h-56 bg-purple-300/40 rounded-full blur-3xl"></div>
-
-      <div className="absolute top-1/2 left-1/3 w-32 h-32 bg-cyan-200/30 rounded-full blur-3xl"></div>
-
-      {/* ================= MAIN CARD ================= */}
-
-      <div className="relative z-10 w-full max-w-6xl bg-white rounded-[28px] shadow-2xl overflow-hidden border border-white">
-
-        <div className="grid grid-cols-1 lg:grid-cols-[42%_58%]">
-
-          {/* =====================================================
-                         LEFT BLUE SECTION
-          ====================================================== */}
-
-          <div className="relative bg-linear-to-br from-blue-900 via-blue-700 to-indigo-700 text-white p-8 lg:p-10 overflow-hidden min-h-700px">
-
-            {/* Decorative circles */}
-
-            <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-400/20 rounded-full"></div>
-
-            <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-purple-400/20 rounded-full"></div>
-
-            <div className="absolute top-1/2 right- -80px w-48 h-48 border border-white/10 rounded-full"></div>
-
-            {/* Content */}
-
-            <div className="relative z-10 h-full flex flex-col">
-
-              {/* Logo */}
-
-              <div className="flex items-center gap-3 mb-10">
-
-                <div className="w-12 h-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center">
-
-                  <BriefcaseBusiness size={25} />
-
-                </div>
-
-                <div>
-                  <h2 className="font-bold text-xl">
-                    InternMatch AI
-                  </h2>
-
-                  <p className="text-blue-200 text-sm">
-                    Find. Match. Grow.
-                  </p>
-                </div>
-
-              </div>
-
-              {/* Badge */}
-
-              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/10 backdrop-blur-md rounded-full px-4 py-2 w-fit text-sm mb-7">
-
-                <Sparkles size={16} />
-
-                Build your career profile
-              </div>
-
-              {/* Heading */}
-
-              <h1 className="text-4xl lg:text-5xl font-bold leading-tight mb-6">
-
-                Create your
-                <br />
-
-                <span className="text-blue-200">
-                  career profile.
-                </span>
-
-              </h1>
-
-              <p className="text-blue-100 text-base leading-7 max-w-md">
-
-                Tell us about your education, skills and career
-                preferences. Our AI will help you discover
-                internships and jobs that match your profile.
-
-              </p>
-
-              {/* Feature Cards */}
-
-              <div className="mt-10 space-y-4">
-
-                {/* Feature 1 */}
-
-                <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex items-center gap-4">
-
-                  <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center">
-
-                    <Sparkles size={21} />
-
-                  </div>
-
-                  <div>
-                    <p className="font-semibold">
-                      AI-Powered Matching
-                    </p>
-
-                    <p className="text-blue-200 text-sm">
-                      Get opportunities based on your skills
-                    </p>
-                  </div>
-
-                </div>
-
-                {/* Feature 2 */}
-
-                <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex items-center gap-4">
-
-                  <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center">
-
-                    <BriefcaseBusiness size={21} />
-
-                  </div>
-
-                  <div>
-                    <p className="font-semibold">
-                      Smart Job Recommendations
-                    </p>
-
-                    <p className="text-blue-200 text-sm">
-                      Find roles that fit your profile
-                    </p>
-                  </div>
-
-                </div>
-
-                {/* Feature 3 */}
-
-                <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex items-center gap-4">
-
-                  <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center">
-
-                    <GraduationCap size={21} />
-
-                  </div>
-
-                  <div>
-                    <p className="font-semibold">
-                      Built For Students
-                    </p>
-
-                    <p className="text-blue-200 text-sm">
-                      Start your career with confidence
-                    </p>
-                  </div>
-
-                </div>
-
-              </div>
-
-              {/* Bottom */}
-
-              <div className="mt-auto pt-10">
-
-                <p className="text-blue-200 text-sm">
-                  Your career journey starts here.
-                </p>
-
-              </div>
-
-            </div>
+    <div className="min-h-screen bg-slate-50 md:flex">
+      {/* Left panel */}
+      <div className="relative flex min-h-260px flex-col justify-center overflow-hidden bg-linear-to-br from-blue-700 via-blue-600 to-indigo-700 px-8 py-10 text-white md:min-h-screen md:w-5/12 md:px-12">
+        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
+        <div className="absolute -bottom-20 -left-12 h-64 w-64 rounded-full bg-indigo-300/20 blur-2xl" />
+
+        <div className="relative z-10">
+          <p className="mb-5 text-sm font-semibold uppercase tracking-[0.25em] text-blue-100">
+            InternMatch AI
+          </p>
+
+          <h1 className="mb-5 text-3xl font-bold leading-tight md:text-5xl">
+            Build your profile.
+            <br />
+            Find your future.
+          </h1>
+
+          <p className="max-w-md text-base leading-7 text-blue-100 md:text-lg">
+            Tell us about your education, skills and career
+            interests so you can discover opportunities that
+            match your profile.
+          </p>
+
+          <div className="mt-8 rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-md">
+            <p className="font-semibold">
+              Your next opportunity starts here.
+            </p>
+            <p className="mt-2 text-sm leading-6 text-blue-100">
+              Keep your information accurate to get more
+              relevant internship recommendations.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right panel */}
+      <div className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8 md:px-12">
+        <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-9">
+          <div className="mb-8">
+            <p className="mb-2 text-sm font-semibold text-blue-600">
+              STUDENT PROFILE
+            </p>
+
+            <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+              Complete your profile
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Fill in your details to get started with
+              internship opportunities.
+            </p>
           </div>
 
-          {/* =====================================================
-                         RIGHT FORM SECTION
-          ====================================================== */}
-
-          <div className="bg-white p-7 md:p-10 lg:p-12">
-
-            {/* Header */}
-
-            <div className="mb-7">
-
-              <div className="flex items-center gap-2 text-blue-600 text-sm font-medium mb-3">
-
-                <CheckCircle2 size={17} />
-
-                Almost there!
-
-              </div>
-
-              <h2 className="text-3xl font-bold text-slate-900">
-                Complete Your Profile
-              </h2>
-
-              <p className="text-slate-500 mt-2 text-sm leading-6">
-                Complete your profile to get relevant internship
-                and job recommendations.
-              </p>
-
-            </div>
-
-            {/* ================= FORM ================= */}
-
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-5"
+          {error && (
+            <div
+              role="alert"
+              className="mb-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
             >
+              {error}
+            </div>
+          )}
 
-              {/* Full Name */}
+          {success && (
+            <div
+              role="status"
+              className="mb-5 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700"
+            >
+              {success}
+            </div>
+          )}
 
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Full name */}
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Full name
+              </label>
+
+              <input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                placeholder="Enter your full name"
+                required
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              />
+            </div>
+
+            {/* College and degree */}
+            <div className="grid gap-5 sm:grid-cols-2">
               <div>
-
-                <label className="block text-sm font-semibold text-slate-800 mb-2">
-                  Full Name
-                  <span className="text-red-500 ml-1">*</span>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  College / University
                 </label>
 
-                <div className="relative">
-
-                  <User
-                    size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
-
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    placeholder="Enter your full name"
-                    className="w-full border border-slate-200 bg-white rounded-xl pl-11 pr-4 py-3.5 text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                  />
-
-                </div>
-
+                <input
+                  type="text"
+                  name="college"
+                  value={formData.college}
+                  onChange={handleChange}
+                  placeholder="Enter college name"
+                  required
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                />
               </div>
-
-              {/* College */}
 
               <div>
-
-                <label className="block text-sm font-semibold text-slate-800 mb-2">
-                  College
-                  <span className="text-red-500 ml-1">*</span>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Degree
                 </label>
 
-                <div className="relative">
-
-                  <GraduationCap
-                    size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
-
-                  <input
-                    type="text"
-                    name="college"
-                    value={formData.college}
-                    onChange={handleChange}
-                    placeholder="Enter your college name"
-                    className="w-full border border-slate-200 bg-white rounded-xl pl-11 pr-4 py-3.5 text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                  />
-
-                </div>
-
+                <select
+                  name="degree"
+                  value={formData.degree}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                >
+                  <option value="">Select degree</option>
+                  <option value="B.Tech">B.Tech</option>
+                  <option value="B.E.">B.E.</option>
+                  <option value="BCA">BCA</option>
+                  <option value="MCA">MCA</option>
+                  <option value="B.Sc">B.Sc</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
+            </div>
 
-              {/* Degree + Graduation Year */}
+            {/* Graduation year and location */}
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Graduation year
+                </label>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                {/* Degree */}
-
-                <div>
-
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">
-                    Degree
-                  </label>
-
-                  <select
-                    name="degree"
-                    value={formData.degree}
-                    onChange={handleChange}
-                    className="w-full border border-slate-200 bg-white rounded-xl px-4 py-3.5 text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                  >
-
-                    <option>B.Tech</option>
-                    <option>B.E</option>
-                    <option>BCA</option>
-                    <option>MCA</option>
-                    <option>M.Tech</option>
-                    <option>Other</option>
-
-                  </select>
-
-                </div>
-
-                {/* Graduation */}
-
-                <div>
-
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">
-                    Graduation Year
-                    <span className="text-red-500 ml-1">*</span>
-                  </label>
-
-                  <input
-                    type="number"
-                    name="graduationYear"
-                    value={formData.graduationYear}
-                    onChange={handleChange}
-                    className="w-full border border-slate-200 bg-white rounded-xl px-4 py-3.5 text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                  />
-
-                </div>
-
+                <input
+                  type="number"
+                  name="graduationYear"
+                  value={formData.graduationYear}
+                  onChange={handleChange}
+                  placeholder="e.g. 2029"
+                  min="2020"
+                  max="2040"
+                  required
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                />
               </div>
-
-              {/* Skills */}
 
               <div>
-
-                <label className="block text-sm font-semibold text-slate-800 mb-2">
-                  Skills
-                  <span className="text-red-500 ml-1">*</span>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Preferred location
                 </label>
 
-                <div className="relative">
-
-                  <Code2
-                    size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
-
-                  <input
-                    type="text"
-                    name="skills"
-                    value={formData.skills}
-                    onChange={handleChange}
-                    placeholder="React, JavaScript, HTML, CSS"
-                    className="w-full border border-slate-200 bg-white rounded-xl pl-11 pr-4 py-3.5 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                  />
-
-                </div>
-
-                <p className="text-xs text-slate-400 mt-2">
-                  Separate multiple skills using commas.
-                </p>
-
+                <input
+                  type="text"
+                  name="preferredLocation"
+                  value={formData.preferredLocation}
+                  onChange={handleChange}
+                  placeholder="e.g. Delhi, Remote"
+                  required
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                />
               </div>
+            </div>
 
-              {/* Experience + Role */}
+            {/* Skills */}
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Skills
+              </label>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input
+                type="text"
+                name="skills"
+                value={formData.skills}
+                onChange={handleChange}
+                placeholder="React, Python, SQL (comma separated)"
+                required
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              />
 
-                {/* Experience */}
+              <p className="mt-2 text-xs text-slate-500">
+                Separate each skill with a comma.
+              </p>
+            </div>
 
-                <div>
+            {/* Experience */}
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Experience
+              </label>
 
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">
-                    Experience
-                  </label>
-
-                  <select
-                    name="experience"
-                    value={formData.experience}
-                    onChange={handleChange}
-                    className="w-full border border-slate-200 bg-white rounded-xl px-4 py-3.5 text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                  >
-
-                    <option>Fresher</option>
-                    <option>0-1 Years</option>
-                    <option>1-2 Years</option>
-                    <option>2+ Years</option>
-
-                  </select>
-
-                </div>
-
-                {/* Preferred Role */}
-
-                <div>
-
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">
-                    Preferred Role
-                    <span className="text-red-500 ml-1">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    name="preferredRole"
-                    value={formData.preferredRole}
-                    onChange={handleChange}
-                    placeholder="Frontend Developer"
-                    className="w-full border border-slate-200 bg-white rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                  />
-
-                </div>
-
-              </div>
-
-              {/* Location */}
-
-              <div>
-
-                <label className="block text-sm font-semibold text-slate-800 mb-2">
-                  Preferred Location
-                </label>
-
-                <div className="relative">
-
-                  <MapPin
-                    size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
-
-                  <input
-                    type="text"
-                    name="preferredLocation"
-                    value={formData.preferredLocation}
-                    onChange={handleChange}
-                    placeholder="Noida, Delhi, Remote"
-                    className="w-full border border-slate-200 bg-white rounded-xl pl-11 pr-4 py-3.5 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                  />
-
-                </div>
-
-              </div>
-
-              {/* Work Mode + Phone */}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                {/* Work Mode */}
-
-                <div>
-
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">
-                    Work Mode
-                  </label>
-
-                  <select
-                    name="workMode"
-                    value={formData.workMode}
-                    onChange={handleChange}
-                    className="w-full border border-slate-200 bg-white rounded-xl px-4 py-3.5 text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                  >
-
-                    <option value="On-site">
-                      On-site
-                    </option>
-
-                    <option value="Remote">
-                      Remote
-                    </option>
-
-                    <option value="Hybrid">
-                      Hybrid
-                    </option>
-
-                  </select>
-
-                </div>
-
-                {/* Phone */}
-
-                <div>
-
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">
-                    Phone Number
-                  </label>
-
-                  <div className="relative">
-
-                    <Phone
-                      size={18}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                    />
-
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="Enter phone number"
-                      className="w-full border border-slate-200 bg-white rounded-xl pl-11 pr-4 py-3.5 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                    />
-
-                  </div>
-
-                </div>
-
-              </div>
-
-              {/* Submit Button */}
-
-              <button
-                type="submit"
-                className="w-full mt-2 bg-linear-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-blue-500/20 transition-all duration-200 flex items-center justify-center gap-2"
+              <select
+                name="experience"
+                value={formData.experience}
+                onChange={handleChange}
+                required
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
               >
+                <option value="">Select experience</option>
+                <option value="Fresher">Fresher</option>
+                <option value="Less than 1 year">
+                  Less than 1 year
+                </option>
+                <option value="1-2 years">1–2 years</option>
+                <option value="2+ years">2+ years</option>
+              </select>
+            </div>
 
-                Complete Profile
+            {/* Preferred role and work mode */}
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Preferred role
+                </label>
 
-                <ArrowRight size={19} />
-
-              </button>
-
-              {/* Bottom info */}
-
-              <div className="flex items-center justify-center gap-2 text-xs text-slate-400 pt-1">
-
-                <Sparkles size={14} className="text-blue-500" />
-
-                Your profile helps us find better opportunities for you.
-
+                <input
+                  type="text"
+                  name="preferredRole"
+                  value={formData.preferredRole}
+                  onChange={handleChange}
+                  placeholder="e.g. Frontend Developer"
+                  required
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                />
               </div>
 
-            </form>
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Preferred work mode
+                </label>
 
-          </div>
+                <select
+                  name="workMode"
+                  value={formData.workMode}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                >
+                  <option value="">Select work mode</option>
+                  <option value="Remote">Remote</option>
+                  <option value="On-site">On-site</option>
+                  <option value="Hybrid">Hybrid</option>
+                  <option value="Any">Any</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Phone number
+              </label>
+
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="Enter phone number"
+                required
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              />
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full rounded-xl bg-blue-600 px-5 py-3.5 font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving
+                ? "Saving profile..."
+                : profileExists
+                ? "Update profile"
+                : "Save and continue"}
+            </button>
+          </form>
         </div>
       </div>
     </div>

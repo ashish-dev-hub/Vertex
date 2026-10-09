@@ -71,12 +71,12 @@ const Login = () => {
       const user = response.data.user;
 
       if (user?.role === "recruiter") {
-        navigate("/recruiter/dashboard");
+        navigate("/recruiter/profile");
       } else if (user?.role === "student") {
         navigate("/student/profile");
       } else {
         if (formData.role === "recruiter") {
-          navigate("/recruiter/dashboard");
+          navigate("/recruiter/profile");
         } else {
           navigate("/student/profile");
         }

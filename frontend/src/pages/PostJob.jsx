@@ -1,382 +1,373 @@
- import React, { useState } from "react";
+ 
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createJob } from "../api/jobs";
 
-import {
-  BriefcaseBusiness,
-  ArrowLeft,
-  MapPin,
-  IndianRupee,
-  Clock,
-  Code,
-  Building2,
-  UserRound,
-} from "lucide-react";
+const initialForm = {
+  title: "",
+  description: "",
+  skills: "",
+  experience: "",
+  location: "",
+  workMode: "",
+  jobType: "",
+  salaryMin: "",
+  salaryMax: "",
+  applicationDeadline: "",
+};
 
 const PostJob = () => {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    companyName: "",
-    jobTitle: "",
-    jobType: "",
-    experience: "",
-    skills: "",
-    location: "",
-    salary: "",
-    duration: "",
-  });
+  const [formData, setFormData] = useState(initialForm);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Skills ko array me convert kar rahe hain
-    const skillsArray = formData.skills
-      .split(",")
-      .map((skill) => skill.trim())
-      .filter((skill) => skill !== "");
+    setError("");
+    setSuccess("");
 
-    const newJob = {
-      id: Date.now(),
+    if (
+      formData.salaryMin !== "" &&
+      formData.salaryMax !== "" &&
+      Number(formData.salaryMin) > Number(formData.salaryMax)
+    ) {
+      setError(
+        "Minimum salary cannot be greater than maximum salary."
+      );
+      return;
+    }
 
-      companyName: formData.companyName,
-      jobTitle: formData.jobTitle,
-      jobType: formData.jobType,
-      experience: formData.experience,
-      skills: skillsArray,
-      location: formData.location,
-      salary: formData.salary,
-      duration: formData.duration,
+    setSaving(true);
 
-      applicants: 0,
-      status: "Active",
-    };
+    try {
+      const jobData = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
 
-    // Existing jobs
-    const existingJobs =
-      JSON.parse(localStorage.getItem("recruiterJobs")) || [];
+        skills: formData.skills
+          .split(",")
+          .map((skill) => skill.trim())
+          .filter(Boolean),
 
-    // New job ko sabse upar add karna
-    const updatedJobs = [newJob, ...existingJobs];
+        experience: formData.experience,
+        location: formData.location.trim(),
+        workMode: formData.workMode,
+        jobType: formData.jobType,
 
-    // Local storage me save
-    localStorage.setItem(
-      "recruiterJobs",
-      JSON.stringify(updatedJobs)
-    );
+        salaryMin:
+          formData.salaryMin === ""
+            ? null
+            : Number(formData.salaryMin),
 
-    alert("Job posted successfully!");
+        salaryMax:
+          formData.salaryMax === ""
+            ? null
+            : Number(formData.salaryMax),
 
-    // Dashboard par redirect
-    navigate("/recruiter/dashboard");
+        applicationDeadline: formData.applicationDeadline,
+      };
+
+      const response = await createJob(jobData);
+
+      setSuccess(
+        response.data?.message || "Job posted successfully!"
+      );
+
+      setFormData(initialForm);
+
+      // Successful POST ke baad recruiter dashboard par jao
+      navigate("/recruiter/dashboard", { replace: true });
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Unable to post job. Please try again."
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100";
+
+  const labelClass =
+    "mb-2 block text-sm font-semibold text-slate-700";
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 px-4 py-10 sm:px-8">
+      <div className="mx-auto max-w-4xl">
+        <button
+          type="button"
+          onClick={() => navigate("/recruiter/dashboard")}
+          className="mb-6 text-sm font-semibold text-blue-600 hover:text-blue-800"
+        >
+          ← Back to dashboard
+        </button>
 
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white">
-        <div className="flex h-16 items-center px-6">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50">
+          <div className="bg-linear-to-r from-blue-700 to-indigo-700 px-6 py-8 text-white sm:px-10">
+            <p className="text-sm font-semibold uppercase tracking-widest text-blue-100">
+              Recruiter workspace
+            </p>
 
-          <button
-            onClick={() => navigate("/recruiter/dashboard")}
-            className="flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-blue-600"
-          >
-            <ArrowLeft size={18} />
-            Back to Dashboard
-          </button>
-
-        </div>
-      </nav>
-
-      {/* Main */}
-      <main className="px-5 py-8 sm:px-8">
-
-        <div className="mx-auto max-w-3xl">
-
-          {/* Heading */}
-          <div className="mb-8">
-
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50">
-              <BriefcaseBusiness
-                size={25}
-                className="text-blue-600"
-              />
-            </div>
-
-            <h1 className="text-3xl font-bold text-slate-900">
+            <h1 className="mt-2 text-3xl font-bold">
               Post a New Job
             </h1>
 
-            <p className="mt-2 text-sm text-slate-500">
-              Create a new internship or job opportunity for students.
+            <p className="mt-2 text-sm text-blue-100">
+              Share an opportunity with talented students.
             </p>
-
           </div>
 
-          {/* Form */}
           <form
             onSubmit={handleSubmit}
-            className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+            className="space-y-6 p-6 sm:p-10"
           >
+            {error && (
+              <div
+                role="alert"
+                className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+              >
+                {error}
+              </div>
+            )}
 
-            {/* Company Name */}
-            <div className="mb-6">
+            {success && (
+              <div
+                role="status"
+                className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700"
+              >
+                {success}
+              </div>
+            )}
 
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Company Name
+            {/* Job title */}
+            <div>
+              <label className={labelClass} htmlFor="title">
+                Job Title *
               </label>
 
-              <div className="relative">
-
-                <Building2
-                  size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-
-                <input
-                  type="text"
-                  name="companyName"
-                  value={formData.companyName}
-                  onChange={handleChange}
-                  placeholder="e.g. TechNova"
-                  required
-                  className="w-full rounded-lg border border-slate-300 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
-
-              </div>
-
+              <input
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder="e.g. Frontend Developer Intern"
+                className={inputClass}
+                required
+              />
             </div>
 
-            {/* Job Title */}
-            <div className="mb-6">
-
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Job Title
+            {/* Description */}
+            <div>
+              <label
+                className={labelClass}
+                htmlFor="description"
+              >
+                Job Description *
               </label>
 
-              <div className="relative">
-
-                <BriefcaseBusiness
-                  size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-
-                <input
-                  type="text"
-                  name="jobTitle"
-                  value={formData.jobTitle}
-                  onChange={handleChange}
-                  placeholder="e.g. Frontend Developer Intern"
-                  required
-                  className="w-full rounded-lg border border-slate-300 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
-
-              </div>
-
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Describe the role, responsibilities and requirements..."
+                rows={5}
+                className={inputClass}
+                required
+              />
             </div>
 
-            {/* Job Type */}
-            <div className="mb-6">
+            {/* Skills */}
+            <div>
+              <label className={labelClass} htmlFor="skills">
+                Required Skills *
+              </label>
 
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Job Type
+              <input
+                id="skills"
+                name="skills"
+                value={formData.skills}
+                onChange={handleChange}
+                placeholder="React, JavaScript, HTML, CSS"
+                className={inputClass}
+                required
+              />
+
+              <p className="mt-2 text-xs text-slate-500">
+                Enter skills separated by commas.
+              </p>
+            </div>
+
+            {/* Experience */}
+            <div>
+              <label
+                className={labelClass}
+                htmlFor="experience"
+              >
+                Experience *
               </label>
 
               <select
-                name="jobType"
-                value={formData.jobType}
+                id="experience"
+                name="experience"
+                value={formData.experience}
                 onChange={handleChange}
+                className={inputClass}
                 required
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
-                <option value="">Select Job Type</option>
-                <option value="Internship">Internship</option>
-                <option value="Full Time">Full Time</option>
-                <option value="Part Time">Part Time</option>
-                <option value="Contract">Contract</option>
+                <option value="">Select experience</option>
+                <option value="Fresher">Fresher</option>
+                <option value="0-1 years">0–1 years</option>
+                <option value="1-2 years">1–2 years</option>
+                <option value="2+ years">2+ years</option>
               </select>
-
-            </div>
-
-            {/* Experience Required */}
-            <div className="mb-6">
-
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Experience Required
-              </label>
-
-              <div className="relative">
-
-                <UserRound
-                  size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-
-                <input
-                  type="text"
-                  name="experience"
-                  value={formData.experience}
-                  onChange={handleChange}
-                  placeholder="e.g. Fresher / 0-1 Years"
-                  required
-                  className="w-full rounded-lg border border-slate-300 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
-
-              </div>
-
-            </div>
-
-            {/* Required Skills */}
-            <div className="mb-6">
-
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Required Skills
-              </label>
-
-              <div className="relative">
-
-                <Code
-                  size={18}
-                  className="absolute left-3 top-4 text-slate-400"
-                />
-
-                <input
-                  type="text"
-                  name="skills"
-                  value={formData.skills}
-                  onChange={handleChange}
-                  placeholder="e.g. React, JavaScript, HTML, CSS, Git"
-                  required
-                  className="w-full rounded-lg border border-slate-300 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
-
-              </div>
-
-              <p className="mt-2 text-xs text-slate-500">
-                Enter multiple skills separated by commas.
-              </p>
-
             </div>
 
             {/* Location */}
-            <div className="mb-6">
-
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Location
+            <div>
+              <label className={labelClass} htmlFor="location">
+                Location *
               </label>
 
-              <div className="relative">
+              <input
+                id="location"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                placeholder="e.g. Noida, Delhi"
+                className={inputClass}
+                required
+              />
+            </div>
 
-                <MapPin
-                  size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            {/* Work mode and job type */}
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div>
+                <label
+                  className={labelClass}
+                  htmlFor="workMode"
+                >
+                  Work Mode *
+                </label>
+
+                <select
+                  id="workMode"
+                  name="workMode"
+                  value={formData.workMode}
+                  onChange={handleChange}
+                  className={inputClass}
+                  required
+                >
+                  <option value="">Select work mode</option>
+                  <option value="remote">Remote</option>
+                  <option value="onsite">Onsite</option>
+                  <option value="hybrid">Hybrid</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  className={labelClass}
+                  htmlFor="jobType"
+                >
+                  Job Type *
+                </label>
+
+                <select
+                  id="jobType"
+                  name="jobType"
+                  value={formData.jobType}
+                  onChange={handleChange}
+                  className={inputClass}
+                  required
+                >
+                  <option value="">Select job type</option>
+                  <option value="internship">Internship</option>
+                  <option value="full-time">Full-time</option>
+                  <option value="part-time">Part-time</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Salary range */}
+            <div>
+              <label className={labelClass}>
+                Minimum / Maximum Salary or Stipend
+              </label>
+
+              <div className="grid gap-6 sm:grid-cols-2">
+                <input
+                  type="number"
+                  name="salaryMin"
+                  value={formData.salaryMin}
+                  onChange={handleChange}
+                  placeholder="Minimum amount"
+                  min="0"
+                  className={inputClass}
                 />
 
                 <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
+                  type="number"
+                  name="salaryMax"
+                  value={formData.salaryMax}
                   onChange={handleChange}
-                  placeholder="e.g. Delhi / Noida / Remote"
-                  required
-                  className="w-full rounded-lg border border-slate-300 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  placeholder="Maximum amount"
+                  min="0"
+                  className={inputClass}
                 />
-
               </div>
-
             </div>
 
-            {/* Salary */}
-            <div className="mb-6">
-
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Salary / Stipend
-              </label>
-
-              <div className="relative">
-
-                <IndianRupee
-                  size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-
-                <input
-                  type="text"
-                  name="salary"
-                  value={formData.salary}
-                  onChange={handleChange}
-                  placeholder="e.g. ₹15,000/month"
-                  required
-                  className="w-full rounded-lg border border-slate-300 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
-
-              </div>
-
-            </div>
-
-            {/* Duration */}
-            <div className="mb-8">
-
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Duration
-              </label>
-
-              <div className="relative">
-
-                <Clock
-                  size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-
-                <input
-                  type="text"
-                  name="duration"
-                  value={formData.duration}
-                  onChange={handleChange}
-                  placeholder="e.g. 3 Months"
-                  required
-                  className="w-full rounded-lg border border-slate-300 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
-
-              </div>
-
-            </div>
-
-            {/* Buttons */}
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-
-              <button
-                type="button"
-                onClick={() => navigate("/recruiter/dashboard")}
-                className="rounded-lg border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            {/* Deadline */}
+            <div>
+              <label
+                className={labelClass}
+                htmlFor="applicationDeadline"
               >
-                Cancel
-              </button>
+                Application Deadline *
+              </label>
 
-              <button
-                type="submit"
-                className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-              >
-                Post Job
-              </button>
-
+              <input
+                id="applicationDeadline"
+                type="date"
+                name="applicationDeadline"
+                value={formData.applicationDeadline}
+                onChange={handleChange}
+                min={new Date().toLocaleDateString("en-CA")}
+                className={inputClass}
+                required
+              />
             </div>
 
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full rounded-xl bg-blue-600 px-6 py-4 font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? "Publishing job..." : "Publish Job"}
+            </button>
           </form>
-
         </div>
-
-      </main>
-
+      </div>
     </div>
   );
 };
 
 export default PostJob;
+
