@@ -16,6 +16,7 @@ const StudentProfile = () => {
     preferredLocation: "",
     college: "",
     degree: "",
+    branch: "",
     graduationYear: "",
     skills: "",
     experience: "",
@@ -30,8 +31,10 @@ const StudentProfile = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Backend se existing profile fetch karna
+  // Fetch existing student profile
   useEffect(() => {
+    let isMounted = true;
+
     const fetchProfile = async () => {
       try {
         const response = await getStudentProfile();
@@ -42,12 +45,19 @@ const StudentProfile = () => {
           response.data?.data ??
           response.data;
 
-        if (profile && profile.fullName) {
+        if (!isMounted) return;
+
+        // Backend returns 200 with profile when it exists.
+        if (profile && typeof profile === "object" && profile._id) {
+          setProfileExists(true);
+
           setFormData({
-            fullName: profile.fullName || "",
+            fullName:
+              profile.fullName || profile.user?.name || "",
             preferredLocation: profile.preferredLocation || "",
             college: profile.college || "",
             degree: profile.degree || "",
+            branch: profile.branch || "",
             graduationYear: profile.graduationYear
               ? String(profile.graduationYear)
               : "",
@@ -55,31 +65,44 @@ const StudentProfile = () => {
               ? profile.skills.join(", ")
               : profile.skills || "",
             experience: profile.experience || "",
-            preferredRole: profile.preferredRole || "",
+            preferredRole: Array.isArray(profile.preferredRoles)
+              ? profile.preferredRoles[0] || ""
+              : profile.preferredRole ||
+                profile.preferredRoles ||
+                "",
             workMode: profile.workMode || "",
             phone: profile.phone || "",
           });
-
-          setProfileExists(true);
+        } else {
+          setProfileExists(false);
         }
       } catch (err) {
+        if (!isMounted) return;
+
         if (err.response?.status === 401) {
           setError("Session expired. Please log in again.");
-        } else if (err.response?.status !== 404) {
+        } else if (err.response?.status === 404) {
+          // No profile exists yet; allow creation.
+          setProfileExists(false);
+        } else {
           setError(
             err.response?.data?.message ||
               "Could not load profile. Please try again."
           );
         }
       } finally {
-        setLoadingProfile(false);
+        if (isMounted) setLoadingProfile(false);
       }
     };
 
     fetchProfile();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Input fields ki values update karna
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -89,7 +112,7 @@ const StudentProfile = () => {
     }));
   };
 
-  // Profile save karna
+  // Create or update profile
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -99,12 +122,21 @@ const StudentProfile = () => {
 
     try {
       const profileData = {
-        ...formData,
+        phone: formData.phone.trim(),
+        college: formData.college.trim(),
+        degree: formData.degree,
+        branch: formData.branch,
         graduationYear: Number(formData.graduationYear),
         skills: formData.skills
           .split(",")
           .map((skill) => skill.trim())
           .filter(Boolean),
+        preferredRoles: formData.preferredRole.trim()
+          ? [formData.preferredRole.trim()]
+          : [],
+        preferredLocation: formData.preferredLocation.trim(),
+        workMode: formData.workMode,
+        experience: formData.experience,
       };
 
       let response;
@@ -116,19 +148,21 @@ const StudentProfile = () => {
       }
 
       setProfileExists(true);
-
       setSuccess(
         response.data?.message || "Profile saved successfully!"
       );
 
-      // Profile save hone ke baad dashboard par jaana
       setTimeout(() => {
         navigate("/student/dashboard");
       }, 800);
     } catch (err) {
+      console.error(
+        "Student profile error:",
+        err.response?.data || err
+      );
+
       setError(
         err.response?.data?.message ||
-          err.message ||
           "Failed to save profile. Please try again."
       );
     } finally {
@@ -136,6 +170,7 @@ const StudentProfile = () => {
     }
   };
 
+  // Loading screen
   if (loadingProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -145,6 +180,12 @@ const StudentProfile = () => {
       </div>
     );
   }
+
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100";
+
+  const labelClass =
+    "mb-2 block text-sm font-semibold text-slate-700";
 
   return (
     <div className="min-h-screen bg-slate-50 md:flex">
@@ -191,12 +232,15 @@ const StudentProfile = () => {
             </p>
 
             <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-              Complete your profile
+              {profileExists
+                ? "Update your profile"
+                : "Complete your profile"}
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-slate-500">
-              Fill in your details to get started with
-              internship opportunities.
+              {profileExists
+                ? "Edit your details and save your changes."
+                : "Fill in your details to get started with internship opportunities."}
             </p>
           </div>
 
@@ -221,10 +265,7 @@ const StudentProfile = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Full name */}
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Full name
-              </label>
-
+              <label className={labelClass}>Full name</label>
               <input
                 type="text"
                 name="fullName"
@@ -232,17 +273,16 @@ const StudentProfile = () => {
                 onChange={handleChange}
                 placeholder="Enter your full name"
                 required
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                className={inputClass}
               />
             </div>
 
             {/* College and degree */}
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label className={labelClass}>
                   College / University
                 </label>
-
                 <input
                   type="text"
                   name="college"
@@ -250,21 +290,18 @@ const StudentProfile = () => {
                   onChange={handleChange}
                   placeholder="Enter college name"
                   required
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Degree
-                </label>
-
+                <label className={labelClass}>Degree</label>
                 <select
                   name="degree"
                   value={formData.degree}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  className={inputClass}
                 >
                   <option value="">Select degree</option>
                   <option value="B.Tech">B.Tech</option>
@@ -277,13 +314,42 @@ const StudentProfile = () => {
               </div>
             </div>
 
+            {/* Branch */}
+            <div>
+              <label className={labelClass}>
+                Branch / Specialization
+              </label>
+              <select
+                name="branch"
+                value={formData.branch}
+                onChange={handleChange}
+                required
+                className={inputClass}
+              >
+                <option value="">Select your branch</option>
+                <option value="CSE">
+                  Computer Science Engineering (CSE)
+                </option>
+                <option value="IT">
+                  Information Technology (IT)
+                </option>
+                <option value="AI/ML">
+                  Artificial Intelligence / Machine Learning
+                </option>
+                <option value="ECE">
+                  Electronics & Communication (ECE)
+                </option>
+                <option value="EE">Electrical Engineering (EE)</option>
+                <option value="ME">Mechanical Engineering (ME)</option>
+                <option value="Civil">Civil Engineering</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
             {/* Graduation year and location */}
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Graduation year
-                </label>
-
+                <label className={labelClass}>Graduation year</label>
                 <input
                   type="number"
                   name="graduationYear"
@@ -293,15 +359,14 @@ const StudentProfile = () => {
                   min="2020"
                   max="2040"
                   required
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label className={labelClass}>
                   Preferred location
                 </label>
-
                 <input
                   type="text"
                   name="preferredLocation"
@@ -309,17 +374,14 @@ const StudentProfile = () => {
                   onChange={handleChange}
                   placeholder="e.g. Delhi, Remote"
                   required
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  className={inputClass}
                 />
               </div>
             </div>
 
             {/* Skills */}
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Skills
-              </label>
-
+              <label className={labelClass}>Skills</label>
               <input
                 type="text"
                 name="skills"
@@ -327,9 +389,8 @@ const StudentProfile = () => {
                 onChange={handleChange}
                 placeholder="React, Python, SQL (comma separated)"
                 required
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                className={inputClass}
               />
-
               <p className="mt-2 text-xs text-slate-500">
                 Separate each skill with a comma.
               </p>
@@ -337,16 +398,13 @@ const StudentProfile = () => {
 
             {/* Experience */}
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Experience
-              </label>
-
+              <label className={labelClass}>Experience</label>
               <select
                 name="experience"
                 value={formData.experience}
                 onChange={handleChange}
                 required
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                className={inputClass}
               >
                 <option value="">Select experience</option>
                 <option value="Fresher">Fresher</option>
@@ -361,10 +419,7 @@ const StudentProfile = () => {
             {/* Preferred role and work mode */}
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Preferred role
-                </label>
-
+                <label className={labelClass}>Preferred role</label>
                 <input
                   type="text"
                   name="preferredRole"
@@ -372,37 +427,33 @@ const StudentProfile = () => {
                   onChange={handleChange}
                   placeholder="e.g. Frontend Developer"
                   required
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label className={labelClass}>
                   Preferred work mode
                 </label>
-
                 <select
                   name="workMode"
                   value={formData.workMode}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  className={inputClass}
                 >
                   <option value="">Select work mode</option>
-                  <option value="Remote">Remote</option>
-                  <option value="On-site">On-site</option>
-                  <option value="Hybrid">Hybrid</option>
-                  <option value="Any">Any</option>
+                  <option value="remote">Remote</option>
+                  <option value="onsite">On-site</option>
+                  <option value="hybrid">Hybrid</option>
+                  
                 </select>
               </div>
             </div>
 
             {/* Phone */}
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Phone number
-              </label>
-
+              <label className={labelClass}>Phone number</label>
               <input
                 type="tel"
                 name="phone"
@@ -410,7 +461,7 @@ const StudentProfile = () => {
                 onChange={handleChange}
                 placeholder="Enter phone number"
                 required
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                className={inputClass}
               />
             </div>
 

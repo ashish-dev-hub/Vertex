@@ -39,15 +39,47 @@ const PostJob = () => {
     setError("");
     setSuccess("");
 
+    // Validate salary
+    if (
+      (formData.salaryMin !== "" &&
+        Number(formData.salaryMin) < 0) ||
+      (formData.salaryMax !== "" &&
+        Number(formData.salaryMax) < 0)
+    ) {
+      setError("Salary cannot be negative.");
+      return;
+    }
+
     if (
       formData.salaryMin !== "" &&
       formData.salaryMax !== "" &&
-      Number(formData.salaryMin) > Number(formData.salaryMax)
+      Number(formData.salaryMin) >
+        Number(formData.salaryMax)
     ) {
       setError(
         "Minimum salary cannot be greater than maximum salary."
       );
       return;
+    }
+
+    // Validate deadline
+    if (formData.applicationDeadline) {
+      const deadline = new Date(
+        formData.applicationDeadline + "T00:00:00"
+      );
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (
+        Number.isNaN(deadline.getTime()) ||
+        deadline < today
+      ) {
+        setError(
+          "Application deadline cannot be in the past."
+        );
+        return;
+      }
     }
 
     setSaving(true);
@@ -67,29 +99,36 @@ const PostJob = () => {
         workMode: formData.workMode,
         jobType: formData.jobType,
 
-        salaryMin:
-          formData.salaryMin === ""
-            ? null
-            : Number(formData.salaryMin),
+        ...(formData.salaryMin !== "" && {
+          salaryMin: Number(formData.salaryMin),
+        }),
 
-        salaryMax:
-          formData.salaryMax === ""
-            ? null
-            : Number(formData.salaryMax),
+        ...(formData.salaryMax !== "" && {
+          salaryMax: Number(formData.salaryMax),
+        }),
 
-        applicationDeadline: formData.applicationDeadline,
+        applicationDeadline:
+          formData.applicationDeadline,
       };
 
       const response = await createJob(jobData);
 
       setSuccess(
-        response.data?.message || "Job posted successfully!"
+        response.data?.message ||
+          "Job posted successfully!"
       );
 
-      setFormData(initialForm);
+      setFormData({ ...initialForm });
 
-      // Successful POST ke baad recruiter dashboard par jao
-      navigate("/recruiter/dashboard", { replace: true });
+      // Redirect after successful job creation
+      navigate("/recruiter/dashboard", {
+        replace: true,
+        state: {
+          message:
+            response.data?.message ||
+            "Job posted successfully!",
+        },
+      });
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -112,7 +151,9 @@ const PostJob = () => {
       <div className="mx-auto max-w-4xl">
         <button
           type="button"
-          onClick={() => navigate("/recruiter/dashboard")}
+          onClick={() =>
+            navigate("/recruiter/dashboard")
+          }
           className="mb-6 text-sm font-semibold text-blue-600 hover:text-blue-800"
         >
           ← Back to dashboard
@@ -155,9 +196,12 @@ const PostJob = () => {
               </div>
             )}
 
-            {/* Job title */}
+            {/* Job Title */}
             <div>
-              <label className={labelClass} htmlFor="title">
+              <label
+                className={labelClass}
+                htmlFor="title"
+              >
                 Job Title *
               </label>
 
@@ -195,7 +239,10 @@ const PostJob = () => {
 
             {/* Skills */}
             <div>
-              <label className={labelClass} htmlFor="skills">
+              <label
+                className={labelClass}
+                htmlFor="skills"
+              >
                 Required Skills *
               </label>
 
@@ -231,17 +278,28 @@ const PostJob = () => {
                 className={inputClass}
                 required
               >
-                <option value="">Select experience</option>
+                <option value="">
+                  Select experience
+                </option>
                 <option value="Fresher">Fresher</option>
-                <option value="0-1 years">0–1 years</option>
-                <option value="1-2 years">1–2 years</option>
-                <option value="2+ years">2+ years</option>
+                <option value="0-1 years">
+                  0–1 years
+                </option>
+                <option value="1-2 years">
+                  1–2 years
+                </option>
+                <option value="2+ years">
+                  2+ years
+                </option>
               </select>
             </div>
 
             {/* Location */}
             <div>
-              <label className={labelClass} htmlFor="location">
+              <label
+                className={labelClass}
+                htmlFor="location"
+              >
                 Location *
               </label>
 
@@ -256,7 +314,7 @@ const PostJob = () => {
               />
             </div>
 
-            {/* Work mode and job type */}
+            {/* Work Mode and Job Type */}
             <div className="grid gap-6 sm:grid-cols-2">
               <div>
                 <label
@@ -274,7 +332,9 @@ const PostJob = () => {
                   className={inputClass}
                   required
                 >
-                  <option value="">Select work mode</option>
+                  <option value="">
+                    Select work mode
+                  </option>
                   <option value="remote">Remote</option>
                   <option value="onsite">Onsite</option>
                   <option value="hybrid">Hybrid</option>
@@ -297,15 +357,23 @@ const PostJob = () => {
                   className={inputClass}
                   required
                 >
-                  <option value="">Select job type</option>
-                  <option value="internship">Internship</option>
-                  <option value="full-time">Full-time</option>
-                  <option value="part-time">Part-time</option>
+                  <option value="">
+                    Select job type
+                  </option>
+                  <option value="internship">
+                    Internship
+                  </option>
+                  <option value="full-time">
+                    Full-time
+                  </option>
+                  <option value="part-time">
+                    Part-time
+                  </option>
                 </select>
               </div>
             </div>
 
-            {/* Salary range */}
+            {/* Salary */}
             <div>
               <label className={labelClass}>
                 Minimum / Maximum Salary or Stipend
@@ -334,7 +402,7 @@ const PostJob = () => {
               </div>
             </div>
 
-            {/* Deadline */}
+            {/* Application Deadline */}
             <div>
               <label
                 className={labelClass}
@@ -349,7 +417,18 @@ const PostJob = () => {
                 name="applicationDeadline"
                 value={formData.applicationDeadline}
                 onChange={handleChange}
-                min={new Date().toLocaleDateString("en-CA")}
+                min={(() => {
+                  const today = new Date();
+                  const year = today.getFullYear();
+                  const month = String(
+                    today.getMonth() + 1
+                  ).padStart(2, "0");
+                  const day = String(
+                    today.getDate()
+                  ).padStart(2, "0");
+
+                  return `${year}-${month}-${day}`;
+                })()}
                 className={inputClass}
                 required
               />
@@ -360,7 +439,9 @@ const PostJob = () => {
               disabled={saving}
               className="w-full rounded-xl bg-blue-600 px-6 py-4 font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {saving ? "Publishing job..." : "Publish Job"}
+              {saving
+                ? "Publishing job..."
+                : "Publish Job"}
             </button>
           </form>
         </div>
@@ -370,4 +451,3 @@ const PostJob = () => {
 };
 
 export default PostJob;
-

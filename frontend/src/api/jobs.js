@@ -1,4 +1,4 @@
-
+ 
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -17,50 +17,35 @@ const authConfig = () => {
   };
 };
 
-// Saari jobs fetch karna
-export const getJobs = () => {
-  return axios.get(`${API_URL}/api/jobs`, authConfig());
-};
+// 1. GET: Saari jobs fetch
+export const getJobs = () =>
+  axios.get(`${API_URL}/api/jobs`, authConfig());
 
-// Single job fetch karna
-export const getJobById = (jobId) => {
-  return axios.get(
-    `${API_URL}/api/jobs/${jobId}`,
-    authConfig()
-  );
-};
+// 2. GET: Single job ki details
+export const getJobById = (jobId) =>
+  axios.get(`${API_URL}/api/jobs/${jobId}`, authConfig());
 
-// Nayi job post karna
-export const createJob = (jobData) => {
-  return axios.post(
-    `${API_URL}/api/jobs`,
-    jobData,
-    authConfig()
-  );
-};
+// 3. POST: Nayi job create
+export const createJob = (jobData) =>
+  axios.post(`${API_URL}/api/jobs`, jobData, authConfig());
 
-// Job update karna
-export const updateJob = (jobId, jobData) => {
-  return axios.put(
+// 4. PUT: Job update
+export const updateJob = (jobId, jobData) =>
+  axios.put(
     `${API_URL}/api/jobs/${jobId}`,
     jobData,
     authConfig()
   );
-};
 
-// Job delete karna
-export const deleteJob = (jobId) => {
-  return axios.delete(
-    `${API_URL}/api/jobs/${jobId}`,
-    authConfig()
-  );
-};
+// 5. DELETE: Job delete
+export const deleteJob = (jobId) =>
+  axios.delete(`${API_URL}/api/jobs/${jobId}`, authConfig());
 
-// Job open/close karna
-export const updateJobStatus = (jobId, status) => {
-  return axios.patch(
+// 6. PATCH: Job open/close
+export const updateJobStatus = (jobId, status) =>
+  axios.patch(
     `${API_URL}/api/jobs/${jobId}/status`,
     { status },
     authConfig()
   );
-};
+

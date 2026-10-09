@@ -38,7 +38,7 @@ export const createRecruiterProfile = (data) => {
 // Update recruiter profile
 export const updateRecruiterProfile = (data) => {
   return axios.put(
-    `${RECRUITER_API_URL}/api/recruiter/profile`,
+    `${API_URL}/api/recruiter/profile`,
     data,
     authConfig()
   );

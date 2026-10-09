@@ -69,17 +69,10 @@ const Signup = () => {
 
       console.log("Signup response:", response.data);
 
-      alert("Signup successful");
+      alert("Signup successful! Please login.");
 
-      // Student
-      if (formData.role === "student") {
-        navigate("/student/profile");
-      }
-
-      // Recruiter
-      else {
-        navigate("/recruiter/profile");
-      }
+      // Student aur Recruiter dono same login page par jayenge
+      navigate("/login");
     } catch (error) {
       console.log("Signup error:", error);
 
@@ -94,20 +87,14 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-
       <div className="w-full max-w-6xl min-h-650px overflow-hidden rounded-3xl bg-white shadow-2xl flex flex-col lg:flex-row">
 
-        {/* ================================================= */}
         {/* LEFT SIDE - SIGNUP FORM */}
-        {/* ================================================= */}
-
         <div className="w-full lg:w-[45%] flex items-center justify-center bg-white px-6 py-10 sm:px-10 lg:px-12">
-
           <div className="w-full max-w-md">
 
             {/* Heading */}
             <div className="mb-7">
-
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
                 <UserPlus
                   size={24}
@@ -123,22 +110,18 @@ const Signup = () => {
                 Join InternMatch AI and find the right opportunity
                 for your career.
               </p>
-
             </div>
 
-            {/* ================= FORM ================= */}
-
+            {/* FORM */}
             <form onSubmit={handleSignup}>
 
               {/* ROLE */}
               <div className="mb-4">
-
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
                   Register as
                 </label>
 
                 <div className="relative">
-
                   <UserRound
                     size={18}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
@@ -150,27 +133,19 @@ const Signup = () => {
                     onChange={handleChange}
                     className="w-full appearance-none rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   >
-                    <option value="student">
-                      Student
-                    </option>
-
-                    <option value="recruiter">
-                      Recruiter
-                    </option>
+                    <option value="student">Student</option>
+                    <option value="recruiter">Recruiter</option>
                   </select>
-
                 </div>
               </div>
 
               {/* NAME */}
               <div className="mb-4">
-
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
                   Full Name
                 </label>
 
                 <div className="relative">
-
                   <User
                     size={18}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -185,19 +160,16 @@ const Signup = () => {
                     required
                     className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   />
-
                 </div>
               </div>
 
               {/* EMAIL */}
               <div className="mb-4">
-
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
                   Email Address
                 </label>
 
                 <div className="relative">
-
                   <Mail
                     size={18}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -212,19 +184,16 @@ const Signup = () => {
                     required
                     className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   />
-
                 </div>
               </div>
 
               {/* PASSWORD */}
               <div className="mb-4">
-
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
                   Password
                 </label>
 
                 <div className="relative">
-
                   <LockKeyhole
                     size={18}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -239,19 +208,16 @@ const Signup = () => {
                     required
                     className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   />
-
                 </div>
               </div>
 
               {/* CONFIRM PASSWORD */}
               <div className="mb-6">
-
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
                   Confirm Password
                 </label>
 
                 <div className="relative">
-
                   <ShieldCheck
                     size={18}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -266,7 +232,6 @@ const Signup = () => {
                     required
                     className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   />
-
                 </div>
               </div>
 
@@ -285,14 +250,11 @@ const Signup = () => {
                   </>
                 )}
               </button>
-
             </form>
 
-            {/* LOGIN */}
+            {/* LOGIN LINK */}
             <p className="mt-6 text-center text-sm text-slate-500">
-
               Already have an account?{" "}
-
               <button
                 type="button"
                 onClick={() => navigate("/login")}
@@ -300,45 +262,36 @@ const Signup = () => {
               >
                 Login
               </button>
-
             </p>
 
           </div>
         </div>
 
-        {/* ================================================= */}
         {/* RIGHT SIDE - IMAGE */}
-        {/* ================================================= */}
+        <div className="relative hidden min-h-650px overflow-hidden lg:block lg:w-[55%]">
 
-        <div className="relative hidden min-h-650px overflow-hidden lg:block lg:w-[55%] ">
-
-          {/* Image */}
           <img
-            src="https://images.unsplash.com/vector-1788230742198-1bf35c2fc17c?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDJ8fHNpZ251cCUyMHBob3RvfGVufDB8fDB8fHww"
+            src="https://images.unsplash.com/vector-1788230742198-1bf35c2fc17c?w=900&auto=format&fit=crop&q=60"
             alt="Create your account"
             className="absolute inset-0 h-full w-full object-cover"
           />
 
           {/* Overlay */}
-          <div className="absolute inset-0  " />
+          <div className="absolute inset-0 bg-slate-900/20" />
 
-          {/* Content over image */}
+          {/* CONTENT OVER IMAGE */}
           <div className="relative z-10 flex h-full flex-col justify-between p-10">
 
-            {/* Logo */}
+            {/* LOGO */}
             <div className="flex items-center gap-3">
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md border border-white/20">
-
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-white/20 backdrop-blur-md">
                 <UserPlus
                   size={23}
                   className="text-white"
                 />
-
               </div>
 
               <div>
-
                 <h2 className="text-xl font-bold text-white">
                   InternMatch AI
                 </h2>
@@ -346,15 +299,12 @@ const Signup = () => {
                 <p className="text-xs text-white/80">
                   Find. Match. Grow.
                 </p>
-
               </div>
-
             </div>
 
-            {/* Bottom Text */}
-            <div className="max-w-lgz">
-
-              <div className="mb-4 inline-flex items-center rounded-full bg-white/15 px-4 py-2 text-sm font-medium text-white backdrop-blur-md border border-white/20">
+            {/* BOTTOM TEXT */}
+            <div className="max-w-lg">
+              <div className="mb-4 inline-flex items-center rounded-full border border-white/20 bg-white/15 px-4 py-2 text-sm font-medium text-white backdrop-blur-md">
                 Start your journey
               </div>
 
@@ -365,9 +315,6 @@ const Signup = () => {
                 </span>
                 starts here.
               </h2>
-
-             
-
             </div>
 
           </div>
@@ -379,4 +326,3 @@ const Signup = () => {
 };
 
 export default Signup;
-
