@@ -1,4 +1,4 @@
- import React from "react";
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Landing from "./pages/Landing";
@@ -8,6 +8,7 @@ import StudentProfile from "./pages/StudentProfile";
 import StudentDashboard from "./pages/StudentDashboard";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
 import PostJob from "./pages/PostJob";
+import RecruiterProfile from "./pages/RecruiterProfile";
 
 const App = () => {
   return (
@@ -31,6 +32,13 @@ const App = () => {
           path="/student/dashboard"
           element={<StudentDashboard />}
         />
+
+
+        {/* Recruiter profile completion */} <Route
+         path="/recruiter/profile"
+          element={<RecruiterProfile />} 
+        />
+
 
         {/* Recruiter Pages */}
         <Route

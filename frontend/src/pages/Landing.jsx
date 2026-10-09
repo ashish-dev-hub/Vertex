@@ -120,7 +120,7 @@ const Landing = () => {
 
           <div className="mx-auto max-w-2xl text-center">
 
-            <p className="font-semibold text-blue-600">
+            <p className="font-semibold text-3xl text-blue-600">
               FEATURES
             </p>
 
@@ -205,7 +205,7 @@ const Landing = () => {
 
         <div className="text-center">
 
-          <p className="font-semibold text-blue-600">
+          <p className="font-semibold text-3xl text-blue-600">
             HOW IT WORKS
           </p>
 
