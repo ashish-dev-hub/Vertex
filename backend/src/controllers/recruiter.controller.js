@@ -1,12 +1,8 @@
 const RecruiterProfile = require("../models/RecruiterProfile");
 
+const createRecruiterProfile = async (req, res) => { // Create recruiter profile
+    try { const userId = req.user._id;
 
-// Create recruiter profile
-const createRecruiterProfile = async (req, res) => {
-    try {
-        const userId = req.user._id;
-
-       
 const existingProfile = await RecruiterProfile.findOne({user: userId});    // Check if profile already exists
         if (existingProfile) {   
             return res.status(409).json({
@@ -15,11 +11,9 @@ const existingProfile = await RecruiterProfile.findOne({user: userId});    // Ch
             });
         }
 
-        const {companyName,companyDescription,industry,companyWebsite,companyLocation,phone
-} = req.body;
+const {companyName,companyDescription,industry,companyWebsite,companyLocation,phone} = req.body;
 
-        // Create profile
-        const profile = await RecruiterProfile.create({
+const profile = await RecruiterProfile.create({       // Create profile
             user: userId,
             companyName,
             companyDescription,
