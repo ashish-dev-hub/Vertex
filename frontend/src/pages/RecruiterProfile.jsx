@@ -17,7 +17,7 @@ const RecruiterProfile = () => {
     industry: "",
     companyWebsite: "",
     companyLocation: "",
-    phoneNumber: "",
+    phone: "",
   });
 
   const [profileExists, setProfileExists] = useState(false);
@@ -26,6 +26,7 @@ const RecruiterProfile = () => {
   const [loadFailed, setLoadFailed] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isForbidden, setIsForbidden] = useState(false);
 
   // Page open hote hi existing profile fetch karo
   useEffect(() => {
@@ -47,7 +48,8 @@ const RecruiterProfile = () => {
             industry: profile.industry || "",
             companyWebsite: profile.companyWebsite || "",
             companyLocation: profile.companyLocation || "",
-            phoneNumber: profile.phoneNumber || "",
+            // Backend model field is 'phone', not 'phoneNumber'
+            phone: profile.phone || "",
           });
 
           setProfileExists(true);
@@ -58,6 +60,13 @@ const RecruiterProfile = () => {
         if (status === 404) {
           // Profile nahi mili; nayi profile bhar sakte hain
           setProfileExists(false);
+        } else if (status === 403) {
+          setIsForbidden(true);
+          setLoadFailed(true);
+          setError(
+            err.response?.data?.message ||
+              "You are not authorized to access recruiter profile."
+          );
         } else {
           // Network/server/auth error mein POST allow mat karo
           setLoadFailed(true);
@@ -99,7 +108,8 @@ const RecruiterProfile = () => {
         industry: formData.industry,
         companyWebsite: formData.companyWebsite.trim(),
         companyLocation: formData.companyLocation.trim(),
-        phoneNumber: formData.phoneNumber.trim(),
+        // Backend model field is 'phone', not 'phoneNumber'
+        phone: formData.phone.trim(),
       };
 
       let response;
@@ -177,28 +187,82 @@ const RecruiterProfile = () => {
       {/* Right form panel */}
       <main className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8 md:px-12">
         <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-9">
-          <div className="mb-8">
-            <p className="mb-2 text-sm font-bold tracking-widest text-blue-600">
-              RECRUITER SETUP
-            </p>
+          <div className="mb-8 flex items-start justify-between gap-4">
+            <div>
+              <p className="mb-2 text-sm font-bold tracking-widest text-blue-600">
+                RECRUITER SETUP
+              </p>
 
-            <h2 className="text-3xl font-bold text-slate-900">
-              Company profile
-            </h2>
+              <h2 className="text-3xl font-bold text-slate-900">
+                Company profile
+              </h2>
 
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Tell us about your company to get started.
-            </p>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Tell us about your company to get started.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.removeItem("token");
+                navigate("/login");
+              }}
+              className="shrink-0 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition"
+            >
+              Log out
+            </button>
           </div>
 
-          {error && (
+          {isForbidden ? (
+            <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-5 text-amber-900 shadow-sm">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">⚠️</span>
+                <div className="flex-1">
+                  <h4 className="font-bold text-amber-950">
+                    Role Mismatch (Account Unauthorized)
+                  </h4>
+                  <p className="mt-1 text-sm text-amber-800 leading-relaxed">
+                    Aapka current account <strong>Student</strong> role ka hai, isliye Recruiter Profile access nahi ho sakta.
+                  </p>
+
+                  <div className="mt-4 flex flex-wrap gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => navigate("/student/profile")}
+                      className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition"
+                    >
+                      Go to Student Profile
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/student/dashboard")}
+                      className="rounded-xl border border-blue-300 bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
+                    >
+                      Student Dashboard
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        localStorage.removeItem("token");
+                        navigate("/login");
+                      }}
+                      className="rounded-xl border border-amber-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                    >
+                      Logout & Switch to Recruiter
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : error ? (
             <div
               role="alert"
               className="mb-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
             >
               {error}
             </div>
-          )}
+          ) : null}
 
           {success && (
             <div
@@ -209,7 +273,7 @@ const RecruiterProfile = () => {
             </div>
           )}
 
-          {loadFailed ? (
+          {loadFailed && !isForbidden ? (
             <button
               type="button"
               onClick={() => window.location.reload()}
@@ -334,22 +398,23 @@ const RecruiterProfile = () => {
               {/* Phone */}
               <div>
                 <label
-                  htmlFor="phoneNumber"
+                  htmlFor="phone"
                   className="mb-2 block text-sm font-semibold text-slate-700"
                 >
                   Phone Number
                 </label>
 
                 <input
-                  id="phoneNumber"
-                  name="phoneNumber"
+                  id="phone"
+                  name="phone"
                   type="tel"
-                  value={formData.phoneNumber}
+                  value={formData.phone}
                   onChange={handleChange}
                   placeholder="Enter company contact number"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                 />
               </div>
+
 
               <button
                 type="submit"

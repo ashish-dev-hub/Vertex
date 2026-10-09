@@ -17,8 +17,7 @@ export const createStudentProfile = (data) => {
   return axios.post(
     `${API_URL}/api/student/profile`,
     data,
-    getAuthConfig(),
-    {withCredentials:true}
+    getAuthConfig()
   );
 };
 
@@ -26,8 +25,7 @@ export const createStudentProfile = (data) => {
 export const getStudentProfile = () => {
   return axios.get(
     `${API_URL}/api/student/profile`,
-    getAuthConfig(),
-    {withCredentials:true}
+    getAuthConfig()
   );
 };
 
@@ -36,7 +34,6 @@ export const updateStudentProfile = (data) => {
   return axios.put(
     `${API_URL}/api/student/profile`,
     data,
-    getAuthConfig(),
-    {withCredentials:true}
+    getAuthConfig()
   );
 };

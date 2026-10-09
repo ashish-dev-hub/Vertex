@@ -6,14 +6,15 @@ const {createJob,getAllJobs,getMyJobs,getJobById,updateJob,deleteJob,updateJobSt
 
 const router = express.Router();
 
-router.get("/",getAllJobs);
-router.get("/:jobId",getJobById);
+router.get("/my", protect, authorizeRoles("recruiter"), getMyJobs);
 
-router.post("/",protect,authorizeRoles("recruiter"),createJob);
-router.put("/:jobId",protect,authorizeRoles("recruiter"),updateJob);
-router.get("/my",protect,authorizeRoles("recruiter"),getMyJobs);
-router.delete("/:jobId",protect,authorizeRoles("recruiter"),deleteJob);
-router.patch("/:jobId/status",protect,authorizeRoles("recruiter"),updateJobStatus); 
+router.get("/", getAllJobs);
+router.get("/:jobId", getJobById);
+
+router.post("/", protect, authorizeRoles("recruiter"), createJob);
+router.put("/:jobId", protect, authorizeRoles("recruiter"), updateJob);
+router.delete("/:jobId", protect, authorizeRoles("recruiter"), deleteJob);
+router.patch("/:jobId/status", protect, authorizeRoles("recruiter"), updateJobStatus);
 
 
 module.exports = router;

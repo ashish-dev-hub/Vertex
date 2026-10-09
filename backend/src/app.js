@@ -8,25 +8,49 @@ const applicationRoutes = require("./routes/application.routes");
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://frontend-three-alpha-c5u2r52o9u.vercel.app",
+    process.env.CORS_ORIGIN,
+]
+    .filter(Boolean)
+    .map((origin) => origin.replace(/\/$/, ""));
+
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        const normalizedOrigin = origin.replace(/\/$/, "");
+        if (allowedOrigins.includes(normalizedOrigin)) {
+            return callback(null, true);
+        }
+        return callback(new Error("Not allowed by CORS: " + origin));
+    },
+    credentials: true,
+}));
+
 app.use(express.json());
 
-app.get("/health",(req,res)=>{res.status(200).json({
+app.get("/health", (req, res) => {
+    res.status(200).json({
         success: true,            // Backend check karne ke liye
-        message: "backend is running properly"});
+        message: "backend is running properly"
+    });
 });
 
 
-app.use("/api/auth",authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/recruiter", recruiterRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
 
 
-app.use((req,res)=>{res.status(404).json({
-     success: false,
-     message: "Route not found"});
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Route not found"
+    });
 });
 
 module.exports = app;
