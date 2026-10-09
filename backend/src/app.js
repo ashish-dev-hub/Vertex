@@ -3,6 +3,7 @@ const cors = require("cors");
 const authRoutes = require("./routes/auth.routes");
 const studentRoutes = require("./routes/student.routes");
 const recruiterRoutes = require("./routes/recruiter.routes");
+const jobRoutes = require("./routes/job.routes");
 
 const app = express();
 
@@ -14,11 +15,13 @@ app.get("/health",(req,res)=>{res.status(200).json({
         message: "backend is running properly"});
 });
 
+
 app.use("/api/auth",authRoutes);
-
 app.use("/api/student", studentRoutes);
-
 app.use("/api/recruiter", recruiterRoutes);
+app.use("/api/jobs", jobRoutes);
+
+
 
 app.use((req,res)=>{res.status(404).json({
      success: false,
