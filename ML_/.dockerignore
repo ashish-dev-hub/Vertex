@@ -1,9 +1,0 @@
-__pycache__/
-*.pyc
-.git
-.venv
-venv
-.env
-.vscode
-*.ipynb
-*.zip
