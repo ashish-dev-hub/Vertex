@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.classification_api import router as classification_router
 from app.final_match_api import router as final_match_router
-from app.recommend_api import router as recommend_router
+from app.Recommend_api import router as recommend_router
 from app.regression_api import router as regression_router
 
 app = FastAPI(title="AI Job Matching API")
