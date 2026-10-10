@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 
 import { login } from "../api/auth";
+import { getStudentProfile } from "../api/studentProfile";
+import { getRecruiterProfile } from "../api/recruiterProfile";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -72,10 +74,22 @@ const Login = () => {
       const userRole = user?.role || formData.role;
       localStorage.setItem("userRole", userRole);
 
+      // Check if user already has a profile → go to dashboard
+      // If no profile exists (404/error) → go to profile page
       if (userRole === "recruiter") {
-        navigate("/recruiter/profile");
+        try {
+          await getRecruiterProfile();
+          navigate("/recruiter/dashboard");
+        } catch {
+          navigate("/recruiter/profile");
+        }
       } else {
-        navigate("/student/profile");
+        try {
+          await getStudentProfile();
+          navigate("/student/dashboard");
+        } catch {
+          navigate("/student/profile");
+        }
       }
     } catch (error) {
       console.log("Login error:", error);
