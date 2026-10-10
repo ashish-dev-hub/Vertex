@@ -5,6 +5,10 @@ const studentRoutes = require("./routes/student.routes");
 const recruiterRoutes = require("./routes/recruiter.routes");
 const jobRoutes = require("./routes/job.routes");
 const applicationRoutes = require("./routes/application.routes");
+const mlRoutes = require("./routes/ml.routes");
+const classificationRoutes = require("./routes/classification.routes");
+const regressionRoutes = require("./routes/regression.routes");
+const recommendationRoutes = require("./routes/recommendation.routes");
 
 const app = express();
 
@@ -16,7 +20,7 @@ const allowedOrigins = [
 ]
     .filter(Boolean)
     .map((origin) => origin.replace(/\/$/, ""));
-
+    
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
@@ -44,6 +48,10 @@ app.use("/api/student", studentRoutes);
 app.use("/api/recruiter", recruiterRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use("/api/ml", mlRoutes);
+app.use("/api/ml/classification", classificationRoutes);
+app.use("/api/ml/regression", regressionRoutes);
+app.use("/api/ml/recommendation", recommendationRoutes);
 
 
 app.use((req, res) => {
