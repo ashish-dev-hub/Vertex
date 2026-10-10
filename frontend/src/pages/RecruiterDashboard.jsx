@@ -105,6 +105,7 @@ const RecruiterDashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
     navigate("/login");
   };
 

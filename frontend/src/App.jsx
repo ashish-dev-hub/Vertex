@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -11,6 +11,7 @@ import PostJob from "./pages/PostJob";
 import RecruiterProfile from "./pages/RecruiterProfile";
 
 import MLIntelligenceHub from "./pages/MLIntelligenceHub";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   return (
@@ -20,11 +21,29 @@ const App = () => {
         {/* Common Pages */}
         <Route path="/" element={<Landing />} />
 
-        {/* Vertex ML Intelligence Suite (Dropdowns + All 4 ML APIs) */}
-        <Route path="/ml" element={<MLIntelligenceHub />} />
-        <Route path="/ml/student" element={<MLIntelligenceHub role="student" />} />
-        <Route path="/ml/recruiter" element={<MLIntelligenceHub role="recruiter" />} />
-        <Route path="/vertex-ml" element={<MLIntelligenceHub />} />
+        {/* ML Hub – Student only (Candidate Fit + Salary Prediction) */}
+        <Route
+          path="/ml/student"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <MLIntelligenceHub role="student" />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ML Hub – Recruiter only (Job Recommendation + Final Match) */}
+        <Route
+          path="/ml/recruiter"
+          element={
+            <ProtectedRoute allowedRoles={["recruiter"]}>
+              <MLIntelligenceHub role="recruiter" />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Redirect /ml and /vertex-ml to login (no direct access without role) */}
+        <Route path="/ml" element={<Navigate to="/login" replace />} />
+        <Route path="/vertex-ml" element={<Navigate to="/login" replace />} />
 
         <Route path="/signup" element={<Signup />} />
 

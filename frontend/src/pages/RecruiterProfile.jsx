@@ -206,6 +206,7 @@ const RecruiterProfile = () => {
               type="button"
               onClick={() => {
                 localStorage.removeItem("token");
+                localStorage.removeItem("userRole");
                 navigate("/login");
               }}
               className="shrink-0 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition"
@@ -245,6 +246,7 @@ const RecruiterProfile = () => {
                       type="button"
                       onClick={() => {
                         localStorage.removeItem("token");
+                        localStorage.removeItem("userRole");
                         navigate("/login");
                       }}
                       className="rounded-xl border border-amber-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"

@@ -37,7 +37,7 @@ export const getMe = () => {
   });
 };
 
-// LOGOUT
 export const logout = () => {
   localStorage.removeItem("token");
+  localStorage.removeItem("userRole");
 };

@@ -69,17 +69,13 @@ const Login = () => {
       alert("Login successful");
 
       const user = response.data.user;
+      const userRole = user?.role || formData.role;
+      localStorage.setItem("userRole", userRole);
 
-      if (user?.role === "recruiter") {
+      if (userRole === "recruiter") {
         navigate("/recruiter/profile");
-      } else if (user?.role === "student") {
-        navigate("/student/profile");
       } else {
-        if (formData.role === "recruiter") {
-          navigate("/recruiter/profile");
-        } else {
-          navigate("/student/profile");
-        }
+        navigate("/student/profile");
       }
     } catch (error) {
       console.log("Login error:", error);
