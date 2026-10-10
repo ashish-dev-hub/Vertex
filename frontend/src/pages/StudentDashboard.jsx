@@ -366,6 +366,14 @@ const StudentDashboard = () => {
               <GraduationCap size={19} />
               My Profile
             </Link>
+
+            <Link
+              to="/ml/student"
+              className="flex items-center gap-3 rounded-xl bg-blue-50/80 px-3 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition"
+            >
+              <Sparkles size={19} className="text-blue-600" />
+              Vertex ML Models
+            </Link>
           </nav>
 
           <div className="mt-10 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-700 p-4 text-white">

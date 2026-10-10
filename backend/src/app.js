@@ -9,6 +9,7 @@ const mlRoutes = require("./routes/ml.routes");
 const classificationRoutes = require("./routes/classification.routes");
 const regressionRoutes = require("./routes/regression.routes");
 const recommendationRoutes = require("./routes/recommendation.routes");
+const protect = require("./middleware/auth.middleware");
 
 const app = express();
 
@@ -48,10 +49,10 @@ app.use("/api/student", studentRoutes);
 app.use("/api/recruiter", recruiterRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
-app.use("/api/ml", mlRoutes);
-app.use("/api/ml/classification", classificationRoutes);
-app.use("/api/ml/regression", regressionRoutes);
-app.use("/api/ml/recommendation", recommendationRoutes);
+app.use("/api/ml", protect, mlRoutes);
+app.use("/api/ml/classification", protect, classificationRoutes);
+app.use("/api/ml/regression", protect, regressionRoutes);
+app.use("/api/ml/recommendation", protect, recommendationRoutes);
 
 
 app.use((req, res) => {

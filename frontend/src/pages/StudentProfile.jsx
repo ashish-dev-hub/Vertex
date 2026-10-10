@@ -527,17 +527,29 @@ const StudentProfile = () => {
             </div>
 
             {/* Submit */}
-            <button
-              type="submit"
-              disabled={saving}
-              className="w-full rounded-xl bg-blue-600 px-5 py-3.5 font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {saving
-                ? "Saving profile..."
-                : profileExists
-                ? "Update profile"
-                : "Save and continue"}
-            </button>
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex-1 w-full rounded-xl bg-blue-600 px-5 py-3.5 font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {saving
+                  ? "Saving profile..."
+                  : profileExists
+                  ? "Update profile"
+                  : "Save and continue"}
+              </button>
+
+              {profileExists && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/student/dashboard")}
+                  className="flex-1 w-full rounded-xl bg-slate-100 px-5 py-3.5 font-semibold text-slate-700 transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200"
+                >
+                  Go to Dashboard
+                </button>
+              )}
+            </div>
           </form>
         </div>
       </div>

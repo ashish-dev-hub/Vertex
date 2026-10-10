@@ -10,6 +10,8 @@ import RecruiterDashboard from "./pages/RecruiterDashboard";
 import PostJob from "./pages/PostJob";
 import RecruiterProfile from "./pages/RecruiterProfile";
 
+import MLIntelligenceHub from "./pages/MLIntelligenceHub";
+
 const App = () => {
   return (
     <BrowserRouter>
@@ -18,12 +20,15 @@ const App = () => {
         {/* Common Pages */}
         <Route path="/" element={<Landing />} />
 
-        
-          <Route path="/signup" element={<Signup />} />
+        {/* Vertex ML Intelligence Suite (Dropdowns + All 4 ML APIs) */}
+        <Route path="/ml" element={<MLIntelligenceHub />} />
+        <Route path="/ml/student" element={<MLIntelligenceHub role="student" />} />
+        <Route path="/ml/recruiter" element={<MLIntelligenceHub role="recruiter" />} />
+        <Route path="/vertex-ml" element={<MLIntelligenceHub />} />
+
+        <Route path="/signup" element={<Signup />} />
 
         <Route path="/login" element={<Login />} />
-
-       
 
         {/* Student Pages */}
         <Route
@@ -36,12 +41,11 @@ const App = () => {
           element={<StudentDashboard />}
         />
 
-
-        {/* Recruiter profile completion */} <Route
-         path="/recruiter/profile"
+        {/* Recruiter profile completion */}
+        <Route
+          path="/recruiter/profile"
           element={<RecruiterProfile />} 
         />
-
 
         {/* Recruiter Pages */}
         <Route

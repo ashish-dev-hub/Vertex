@@ -19,6 +19,7 @@ import {
   X,
   Save,
   Hand,
+  Sparkles,
 } from "lucide-react";
 
 import {
@@ -386,6 +387,14 @@ const RecruiterDashboard = () => {
                 <Users size={19} />
                 Applicants
               </a>
+
+              <Link
+                to="/ml/recruiter"
+                className="flex items-center gap-3 rounded-lg bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+              >
+                <Sparkles size={19} className="text-blue-600" />
+                Vertex ML Models
+              </Link>
             </div>
 
             <button
