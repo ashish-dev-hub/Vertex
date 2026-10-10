@@ -83,7 +83,7 @@ class FinalMatchInput(BaseModel):
 
     education: str = "Unknown"
     years_experience: int = Field(ge=0)
-    candidate_location: str = "Unknown"
+    candidate_location: Optional[str]=None
     candidate_preferred_work_mode: str = "Unknown"
     student_year_of_study: float=Field(ge=0)
     student_cgpa: float = Field(gt=0)
@@ -112,7 +112,7 @@ class FinalMatchInput(BaseModel):
     job_location: str = "Unknown"
     work_mode: str = "Unknown"
     company_size: str = "Unknown"
-    industry: str = "Unknown"
+    industry: Optional[str]=None
     job_duration_months: float = Field(default=6, gt=0)
     experience_gap: Optional[float]= None 
  
@@ -121,4 +121,4 @@ class FinalMatchInput(BaseModel):
         self.experience_gap = (self.years_experience - self.required_experience)
         self.project_internship_score = (self.student_num_projects + self.student_internships)
         self.technical_activity_score = (self.student_github_repos +self.student_hackathons_participated)
-        return self
+        return 
