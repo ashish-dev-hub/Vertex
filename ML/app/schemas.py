@@ -121,4 +121,4 @@ class FinalMatchInput(BaseModel):
         self.experience_gap = (self.years_experience - self.required_experience)
         self.project_internship_score = (self.student_num_projects + self.student_internships)
         self.technical_activity_score = (self.student_github_repos +self.student_hackathons_participated)
-        return 
+        return self
