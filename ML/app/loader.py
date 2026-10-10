@@ -38,6 +38,7 @@ def recommand(user_skills, n):
         result = jobs.copy()
     result_vecs = tfidf.transform(result["required_skills"].fillna(""))
     result["similarity_score"] = cosine_similarity(A, result_vecs)[0]
+    result=result[result["similarity_score"]>0]
     return result.sort_values("similarity_score", ascending=False).head(n)
 
 

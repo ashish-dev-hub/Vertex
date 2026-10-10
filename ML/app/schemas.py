@@ -53,7 +53,7 @@ class RegressionInput(BaseModel):
     industry: Optional[str]=None
     job_duration_months: int= Field(gt=0)
     skill_overlap: Optional[int]=None
-    skill_coverage: float = Field(ge=0)
+    skill_coverage: Optional[float] = Field(default=None,ge=0)
     student_year_of_study: float=Field(ge=0)
     student_cgpa: float = Field(gt=0)
     student_num_projects: float = Field(ge=0)
