@@ -20,9 +20,12 @@ import {
 import { login } from "../api/auth";
 import { getStudentProfile } from "../api/studentProfile";
 import { getRecruiterProfile } from "../api/recruiterProfile";
+import { useToast } from "../context/ToastContext";
+import SecurityAdvisoryModal from "../components/common/SecurityAdvisoryModal";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError, showWarning } = useToast();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -32,6 +35,8 @@ const Login = () => {
 
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const [pendingRole, setPendingRole] = useState(null);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /^(?=.*\d).{8,}$/;
@@ -43,17 +48,37 @@ const Login = () => {
     });
   };
 
+  const proceedRedirect = async (roleToUse) => {
+    const role = roleToUse || pendingRole || formData.role;
+    if (role === "recruiter") {
+      try {
+        await getRecruiterProfile();
+        navigate("/recruiter/dashboard");
+      } catch {
+        navigate("/recruiter/profile");
+      }
+    } else {
+      try {
+        await getStudentProfile();
+        navigate("/student/dashboard");
+      } catch {
+        navigate("/student/profile");
+      }
+    }
+  };
+
   const handleLogin = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
 
     if (!emailRegex.test(formData.email)) {
-      alert("Please enter a valid email");
+      showWarning("Please enter a valid email address.", "Invalid Email");
       return;
     }
 
     if (!passwordRegex.test(formData.password)) {
-      alert(
-        "Password must be at least 8 characters and contain a number"
+      showWarning(
+        "Password must be at least 8 characters and contain a number",
+        "Invalid Password"
       );
       return;
     }
@@ -68,35 +93,31 @@ const Login = () => {
       });
 
       console.log("Login response:", response.data);
-      alert("Login successful");
-
       const user = response.data.user;
       const userRole = user?.role || formData.role;
       localStorage.setItem("userRole", userRole);
 
-      // Check if user already has a profile → go to dashboard
-      // If no profile exists (404/error) → go to profile page
-      if (userRole === "recruiter") {
-        try {
-          await getRecruiterProfile();
-          navigate("/recruiter/dashboard");
-        } catch {
-          navigate("/recruiter/profile");
-        }
+      // Check if password has a commonly breached pattern
+      const isCommonWeak = [
+        "123456", "12345678", "password", "anuraj123", "anuraj", "admin123", "student123", "1234"
+      ].some((w) => formData.password.toLowerCase().includes(w));
+
+      if (isCommonWeak) {
+        setPendingRole(userRole);
+        setShowSecurityModal(true);
       } else {
-        try {
-          await getStudentProfile();
-          navigate("/student/dashboard");
-        } catch {
-          navigate("/student/profile");
-        }
+        showSuccess("Login successful! Redirecting...", "Welcome Back");
+        setTimeout(async () => {
+          proceedRedirect(userRole);
+        }, 500);
       }
     } catch (error) {
       console.log("Login error:", error);
 
-      alert(
+      showError(
         error.response?.data?.message ||
-          "Login failed. Please check your credentials."
+          "Login failed. Please check your credentials.",
+        "Authentication Error"
       );
     } finally {
       setLoading(false);
@@ -287,7 +308,7 @@ const Login = () => {
               </p>
             </div>
 
-            <form onSubmit={handleLogin}>
+            <div onKeyDown={(e) => { if (e.key === "Enter") handleLogin(e); }}>
 
               {/* ROLE */}
               <div className="mb-5">
@@ -336,7 +357,8 @@ const Login = () => {
                     placeholder="Enter your email"
                     value={formData.email}
                     onChange={handleChange}
-                    required
+                    autoComplete="off"
+                    data-form-type="other"
                     className="w-full rounded-xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   />
                 </div>
@@ -360,7 +382,8 @@ const Login = () => {
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleChange}
-                    required
+                    autoComplete="new-password"
+                    data-form-type="other"
                     className="w-full rounded-xl border border-slate-200 bg-white py-3.5 pl-11 pr-12 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   />
 
@@ -380,7 +403,8 @@ const Login = () => {
 
               {/* LOGIN BUTTON */}
               <button
-                type="submit"
+                type="button"
+                onClick={handleLogin}
                 disabled={loading}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient from-sky-500  to-blue-600 px-5 py-3.5 text-sm font-bold text-blue-700 shadow-lg shadow-blue-200 transition duration-200 hover:from-sky-600 hover:to-blue-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -393,7 +417,7 @@ const Login = () => {
                   </>
                 )}
               </button>
-            </form>
+            </div>
 
             {/* SIGNUP */}
             <p className="mt-7 text-center text-sm text-slate-500">
@@ -429,6 +453,20 @@ const Login = () => {
         <Send size={13} />
         Smart career opportunities powered by AI
       </div>
+
+      {/* Security Advisory Modal */}
+      <SecurityAdvisoryModal
+        isOpen={showSecurityModal}
+        email={formData.email}
+        onClose={() => {
+          setShowSecurityModal(false);
+          proceedRedirect(pendingRole);
+        }}
+        onContinue={() => {
+          setShowSecurityModal(false);
+          proceedRedirect(pendingRole);
+        }}
+      />
     </div>
   );
 };

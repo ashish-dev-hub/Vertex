@@ -22,21 +22,23 @@ const FormSelect = ({
 }) => {
   return (
     <div className="w-full space-y-1.5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 min-h-[18px]">
         <label
           htmlFor={name}
-          className="text-xs font-semibold uppercase tracking-wider text-slate-700"
+          className="text-xs font-semibold uppercase tracking-wider text-slate-700 whitespace-nowrap shrink-0"
         >
           {label}
           {required && <span className="ml-1 text-rose-500 font-bold">*</span>}
           {!required && (
-            <span className="ml-1 text-[11px] font-normal text-slate-400">
+            <span className="ml-1 text-[11px] font-normal text-slate-400 normal-case">
               (Optional)
             </span>
           )}
         </label>
         {helperText && (
-          <span className="text-[11px] text-slate-400">{helperText}</span>
+          <span className="text-[11px] text-slate-400 text-right truncate">
+            {helperText}
+          </span>
         )}
       </div>
 

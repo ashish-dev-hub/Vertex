@@ -45,7 +45,12 @@ const MLIntelligenceHub = ({ role }) => {
   const availableTabs = React.useMemo(() => {
     return TABS.filter((tab) => {
       if (role === "student") {
-        return tab.id === "classification" || tab.id === "regression";
+        return (
+          tab.id === "classification" ||
+          tab.id === "regression" ||
+          tab.id === "recommendation" ||
+          tab.id === "final-match"
+        );
       }
       if (role === "recruiter") {
         return tab.id === "recommendation" || tab.id === "final-match";

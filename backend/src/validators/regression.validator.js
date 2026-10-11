@@ -214,6 +214,17 @@ const validateRegressionInput = (req, res, next) => {
         });
     }
 
+    if (
+        data.skill_overlap !== undefined &&
+        data.skill_overlap !== null &&
+        data.skill_overlap < 0
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: "skill_overlap cannot be negative"
+        });
+    }
+
     // Optional numeric study field
     if (
         data.student_weekly_study_hours !== undefined &&

@@ -17,9 +17,13 @@ const authConfig = () => {
   };
 };
 
-// 1. GET: Saari jobs fetch
+// 1. GET: Saari jobs fetch (Public / Student)
 export const getJobs = () =>
   axios.get(`${API_URL}/api/jobs`, authConfig());
+
+// 1b. GET: Recruiter ki apni jobs fetch (Account-specific)
+export const getMyJobs = () =>
+  axios.get(`${API_URL}/api/jobs/my`, authConfig());
 
 // 2. GET: Single job ki details
 export const getJobById = (jobId) =>

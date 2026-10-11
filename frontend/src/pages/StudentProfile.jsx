@@ -1,6 +1,7 @@
  
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 import {
   getStudentProfile,
@@ -233,24 +234,16 @@ const StudentProfile = () => {
       {/* Right panel */}
       <div className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8 md:px-12">
         <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-9">
-          <div className="mb-8 flex items-start justify-between gap-4">
-            <div>
-              <p className="mb-2 text-sm font-semibold text-blue-600">
-                STUDENT PROFILE
-              </p>
-
-              <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-                {profileExists
-                  ? "Update your profile"
-                  : "Complete your profile"}
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                {profileExists
-                  ? "Edit your details and save your changes."
-                  : "Fill in your details to get started with internship opportunities."}
-              </p>
-            </div>
+          {/* Top Back Navigation Bar */}
+          <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
+            <button
+              type="button"
+              onClick={() => navigate("/student/dashboard")}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition"
+            >
+              <ArrowLeft size={14} />
+              <span>Back to Dashboard</span>
+            </button>
 
             <button
               type="button"
@@ -259,10 +252,28 @@ const StudentProfile = () => {
                 localStorage.removeItem("userRole");
                 navigate("/login");
               }}
-              className="shrink-0 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition"
+              className="shrink-0 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-red-50 hover:border-red-200 hover:text-red-700 transition"
             >
               Log out
             </button>
+          </div>
+
+          <div className="mb-8">
+            <p className="mb-2 text-sm font-semibold text-blue-600">
+              STUDENT PROFILE
+            </p>
+
+            <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+              {profileExists
+                ? "Update your profile"
+                : "Complete your profile"}
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              {profileExists
+                ? "Edit your details and save your changes."
+                : "Fill in your details to get started with internship opportunities."}
+            </p>
           </div>
 
           {isForbidden ? (
@@ -542,15 +553,13 @@ const StudentProfile = () => {
                   : "Save and continue"}
               </button>
 
-              {profileExists && (
-                <button
-                  type="button"
-                  onClick={() => navigate("/student/dashboard")}
-                  className="flex-1 w-full rounded-xl bg-slate-100 px-5 py-3.5 font-semibold text-slate-700 transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200"
-                >
-                  Go to Dashboard
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => navigate("/student/dashboard")}
+                className="flex-1 w-full rounded-xl bg-slate-100 px-5 py-3.5 font-semibold text-slate-700 transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200"
+              >
+                Back to Dashboard
+              </button>
             </div>
           </form>
         </div>

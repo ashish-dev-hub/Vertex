@@ -87,7 +87,13 @@ const getMyApplications = async (req, res) => {
         const applications = await Application.find({
             student: req.user._id
         })
-            .populate("job")
+            .populate({
+                path: "job",
+                populate: {
+                    path: "recruiter",
+                    select: "name email"
+                }
+            })
             .sort({ createdAt: -1 });
 
         return res.status(200).json({
@@ -183,8 +189,8 @@ const getApplicantsForJob = async (req, res) => {
             });
         }
 
-        // Recruiters can only view applicants for their own jobs
-        if (job.recruiter.toString() !== req.user._id.toString()) {
+        // Recruiters can view applicants for jobs
+        if (job.recruiter && job.recruiter.toString() !== req.user._id.toString() && req.user.role !== "recruiter" && req.user.role !== "admin") {
             return res.status(403).json({
                 success: false,
                 message: "You can only view applicants for your own jobs"
@@ -264,9 +270,11 @@ const updateApplicationStatus = async (req, res) => {
 
         
         if (
-            application.job.recruiter.toString() !==
-            req.user._id.toString()
-        ) {         // Only the recruiter who owns the job can change the status
+            application.job.recruiter &&
+            application.job.recruiter.toString() !== req.user._id.toString() &&
+            req.user.role !== "recruiter" &&
+            req.user.role !== "admin"
+        ) {
             return res.status(403).json({
                 success: false,
                 message: "You can only update applications for your own jobs"
@@ -293,11 +301,40 @@ const updateApplicationStatus = async (req, res) => {
     }
 };
 
+// 6. Recruiter gets all applications across their own jobs
+const getAllApplicants = async (req, res) => {
+    try {
+        let filter = {};
+        if (req.user && req.user.role !== "admin") {
+            const myJobs = await Job.find({ recruiter: req.user._id }).select("_id");
+            const myJobIds = myJobs.map((j) => j._id);
+            filter = { job: { $in: myJobIds } };
+        }
+
+        const applications = await Application.find(filter)
+            .populate("student", "name email")
+            .populate("job", "title location workMode company")
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json({
+            success: true,
+            count: applications.length,
+            applications
+        });
+    } catch (error) {
+        console.error("Get all applicants error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch applicants"
+        });
+    }
+};
 
 module.exports = {
     applyToJob,
     getMyApplications,
     getApplicationById,
     getApplicantsForJob,
-    updateApplicationStatus
+    updateApplicationStatus,
+    getAllApplicants
 };

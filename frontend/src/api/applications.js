@@ -59,3 +59,11 @@ export const updateApplicationStatus = (applicationId, status) => {
     authConfig()
   );
 };
+
+// 6. Recruiter: get all applicants across all jobs
+export const getAllApplicants = () => {
+  return axios.get(
+    `${API_URL}/api/applications/all`,
+    authConfig()
+  );
+};

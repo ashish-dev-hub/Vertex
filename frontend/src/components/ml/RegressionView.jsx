@@ -33,13 +33,14 @@ const initialForm = {
   student_github_repos: 5,
   student_hackathons_participated: 2,
 
+  skill_coverage: 0.8,
+
   // Optional fields
   candidate_location: "Ghaziabad",
   industry: "Product / SaaS",
   student_experience_level: "Beginner",
   student_career_label: "",
-  skill_overlap: "",
-  skill_coverage: ""
+  skill_overlap: 2
 };
 
 const RegressionView = () => {
@@ -89,8 +90,8 @@ const RegressionView = () => {
       industry: "",
       student_experience_level: "",
       student_career_label: "",
-      skill_overlap: "",
-      skill_coverage: ""
+      skill_overlap: 2,
+      skill_coverage: 0.8
     });
     setResult(null);
     setRawResponse(null);
@@ -142,6 +143,23 @@ const RegressionView = () => {
     if (formData.student_hackathons_participated === "" || Number(formData.student_hackathons_participated) < 0) {
       errs.student_hackathons_participated = "Must be ≥ 0";
     }
+    if (
+      formData.skill_coverage === "" ||
+      formData.skill_coverage === null ||
+      isNaN(Number(formData.skill_coverage)) ||
+      Number(formData.skill_coverage) < 0
+    ) {
+      errs.skill_coverage = "Skill coverage is required (≥ 0)";
+    }
+    if (
+      formData.skill_overlap === "" ||
+      formData.skill_overlap === null ||
+      formData.skill_overlap === undefined ||
+      isNaN(Number(formData.skill_overlap)) ||
+      Number(formData.skill_overlap) < 0
+    ) {
+      errs.skill_overlap = "Skill overlap is required (≥ 0)";
+    }
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -176,15 +194,15 @@ const RegressionView = () => {
       student_num_projects: Number(formData.student_num_projects),
       student_internships: Number(formData.student_internships),
       student_github_repos: Number(formData.student_github_repos),
-      student_hackathons_participated: Number(formData.student_hackathons_participated)
+      student_hackathons_participated: Number(formData.student_hackathons_participated),
+      skill_coverage: Number(formData.skill_coverage),
+      skill_overlap: Number(formData.skill_overlap)
     };
 
     if (formData.candidate_location) payload.candidate_location = formData.candidate_location;
     if (formData.industry) payload.industry = formData.industry;
     if (formData.student_experience_level) payload.student_experience_level = formData.student_experience_level;
     if (formData.student_career_label) payload.student_career_label = formData.student_career_label;
-    if (formData.skill_overlap !== "") payload.skill_overlap = Number(formData.skill_overlap);
-    if (formData.skill_coverage !== "") payload.skill_coverage = Number(formData.skill_coverage);
 
     try {
       const response = await getRegression(payload);
@@ -384,6 +402,32 @@ const RegressionView = () => {
                 min={0}
                 error={errors.student_hackathons_participated}
               />
+
+              <NumericField
+                label="Skill Coverage"
+                name="skill_coverage"
+                value={formData.skill_coverage}
+                onChange={handleFieldChange}
+                required
+                min={0}
+                step={0.01}
+                placeholder="e.g. 0.8"
+                helperText="Coverage ratio (e.g. 0.8 for 80%)"
+                error={errors.skill_coverage}
+              />
+
+              <NumericField
+                label="Skill Overlap"
+                name="skill_overlap"
+                value={formData.skill_overlap}
+                onChange={handleFieldChange}
+                required
+                min={0}
+                step={1}
+                placeholder="e.g. 2"
+                helperText="Overlap count (e.g. 2)"
+                error={errors.skill_overlap}
+              />
             </div>
           </div>
 
@@ -558,24 +602,7 @@ const RegressionView = () => {
                   </div>
                 </div>
 
-                {/* Rule from Page 4: "Do not label salary_score as accuracy unless the ML team documents its meaning." */}
-                <div className="rounded-xl border border-slate-200/80 bg-white p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Salary Score
-                      </span>
-                      <p className="text-xs text-slate-400">
-                        (Raw score, not accuracy)
-                      </p>
-                    </div>
-                    <span className="font-mono text-base font-bold text-slate-800">
-                      {result.salary_score !== undefined
-                        ? String(result.salary_score)
-                        : "N/A"}
-                    </span>
-                  </div>
-                </div>
+
 
 
               </div>

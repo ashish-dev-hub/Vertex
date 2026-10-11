@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Job = require("../models/Job");
+const Application = require("../models/Application");
 
 const validateJobData = (data) => {
     const {
@@ -162,12 +163,29 @@ const getAllJobs = async (req, res) => {
     try {
         const jobs = await Job.find()
             .populate("recruiter", "name email")
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean();
+
+        const jobIds = jobs.map((j) => j._id);
+        const appCounts = await Application.aggregate([
+            { $match: { job: { $in: jobIds } } },
+            { $group: { _id: "$job", count: { $sum: 1 } } }
+        ]);
+
+        const countMap = {};
+        appCounts.forEach((item) => {
+            countMap[item._id.toString()] = item.count;
+        });
+
+        const jobsWithCounts = jobs.map((job) => ({
+            ...job,
+            applicantsCount: countMap[job._id.toString()] || 0
+        }));
 
         return res.status(200).json({
             success: true,
-            count: jobs.length,
-            jobs
+            count: jobsWithCounts.length,
+            jobs: jobsWithCounts
         });
 
     } catch (error) {
@@ -193,7 +211,8 @@ const getJobById = async (req, res) => {
         }
 
         const job = await Job.findById(jobId)
-            .populate("recruiter", "name email");
+            .populate("recruiter", "name email")
+            .lean();
 
         if (!job) {
             return res.status(404).json({
@@ -201,6 +220,9 @@ const getJobById = async (req, res) => {
                 message: "Job not found"
             });
         }
+
+        const applicantsCount = await Application.countDocuments({ job: jobId });
+        job.applicantsCount = applicantsCount;
 
         return res.status(200).json({
             success: true,
@@ -223,12 +245,29 @@ const getMyJobs = async (req, res) => {
         const recruiterId = req.user._id;
 
         const jobs = await Job.find({ recruiter: recruiterId })
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean();
+
+        const jobIds = jobs.map((j) => j._id);
+        const appCounts = await Application.aggregate([
+            { $match: { job: { $in: jobIds } } },
+            { $group: { _id: "$job", count: { $sum: 1 } } }
+        ]);
+
+        const countMap = {};
+        appCounts.forEach((item) => {
+            countMap[item._id.toString()] = item.count;
+        });
+
+        const jobsWithCounts = jobs.map((job) => ({
+            ...job,
+            applicantsCount: countMap[job._id.toString()] || 0
+        }));
 
         return res.status(200).json({
             success: true,
-            count: jobs.length,
-            jobs
+            count: jobsWithCounts.length,
+            jobs: jobsWithCounts
         });
 
     } catch (error) {

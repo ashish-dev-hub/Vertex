@@ -12,11 +12,13 @@ import RecruiterProfile from "./pages/RecruiterProfile";
 
 import MLIntelligenceHub from "./pages/MLIntelligenceHub";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { ToastProvider } from "./context/ToastContext";
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Routes>
+    <ToastProvider>
+      <BrowserRouter>
+        <Routes>
 
         {/* Common Pages */}
         <Route path="/" element={<Landing />} />
@@ -78,7 +80,8 @@ const App = () => {
         />
 
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ToastProvider>
   );
 };
 

@@ -1,7 +1,14 @@
 const express = require("express");
 const router = express.Router();
 
-const { applyToJob, getMyApplications, getApplicationById, getApplicantsForJob, updateApplicationStatus } = require("../controllers/application.controller");
+const {
+    applyToJob,
+    getMyApplications,
+    getApplicationById,
+    getApplicantsForJob,
+    updateApplicationStatus,
+    getAllApplicants
+} = require("../controllers/application.controller");
 
 const protect = require("../middleware/auth.middleware");
 const authorizeRoles = require("../middleware/role.middleware");
@@ -9,6 +16,8 @@ const authorizeRoles = require("../middleware/role.middleware");
 router.post("/", protect, authorizeRoles("student"), applyToJob);
 
 router.get("/my", protect, authorizeRoles("student"), getMyApplications);
+
+router.get("/all", protect, authorizeRoles("recruiter"), getAllApplicants);
 
 router.get("/job/:jobId", protect, authorizeRoles("recruiter"), getApplicantsForJob);
 

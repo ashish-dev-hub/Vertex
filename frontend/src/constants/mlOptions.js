@@ -125,7 +125,8 @@ export const SAMPLE_PAYLOADS = {
     company_size: "Medium",
     job_duration_months: 6,
     industry: "Product / SaaS",
-    student_experience_level: "Beginner"
+    student_experience_level: "Beginner",
+    skill_coverage: 0.8
   },
 
   regression: {
@@ -145,7 +146,9 @@ export const SAMPLE_PAYLOADS = {
     student_github_repos: 5,
     student_hackathons_participated: 2,
     candidate_location: "Ghaziabad",
-    industry: "Product / SaaS"
+    industry: "Product / SaaS",
+    skill_coverage: 0.8,
+    skill_overlap: 2
   },
 
   recommendation: {
@@ -175,6 +178,7 @@ export const SAMPLE_PAYLOADS = {
     work_mode: "Hybrid",
     company_size: "Startup",
     industry: "Product / SaaS",
-    job_duration_months: 6
+    job_duration_months: 6,
+    skill_coverage: 0.8
   }
 };

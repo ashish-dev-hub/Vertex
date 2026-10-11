@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Sparkles,
   CheckCircle2,
@@ -55,11 +55,24 @@ const initialForm = {
   candidate_id: "cand_001",
   student_weekly_study_hours: "",
   student_career_label: "",
-  required_skills: ""
+  required_skills: "",
+  skill_coverage: 0.8
 };
 
-const FinalMatchView = () => {
-  const [formData, setFormData] = useState(initialForm);
+const FinalMatchView = ({ initialCandidateSkills }) => {
+  const [formData, setFormData] = useState(() => ({
+    ...initialForm,
+    ...(initialCandidateSkills ? { candidate_skills: initialCandidateSkills } : {})
+  }));
+
+  useEffect(() => {
+    if (initialCandidateSkills) {
+      setFormData((prev) => ({
+        ...prev,
+        candidate_skills: initialCandidateSkills
+      }));
+    }
+  }, [initialCandidateSkills]);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [apiStatus, setApiStatus] = useState(null);
@@ -111,7 +124,8 @@ const FinalMatchView = () => {
       candidate_id: "",
       student_weekly_study_hours: "",
       student_career_label: "",
-      required_skills: ""
+      required_skills: "",
+      skill_coverage: 0.8
     });
     setResult(null);
     setRawResponse(null);
@@ -148,6 +162,14 @@ const FinalMatchView = () => {
     }
     if (formData.job_duration_months === "" || Number(formData.job_duration_months) <= 0) {
       errs.job_duration_months = "Duration must be > 0";
+    }
+    if (
+      formData.skill_coverage === "" ||
+      formData.skill_coverage === null ||
+      isNaN(Number(formData.skill_coverage)) ||
+      Number(formData.skill_coverage) < 0
+    ) {
+      errs.skill_coverage = "Skill coverage is required (≥ 0)";
     }
 
     setErrors(errs);
@@ -195,7 +217,8 @@ const FinalMatchView = () => {
       work_mode: formData.work_mode || "Unknown",
       company_size: formData.company_size || "Unknown",
       industry: formData.industry || "Unknown",
-      job_duration_months: Number(formData.job_duration_months || 6)
+      job_duration_months: Number(formData.job_duration_months || 6),
+      skill_coverage: Number(formData.skill_coverage)
     };
 
     if (formData.candidate_id) payload.candidate_id = formData.candidate_id;
@@ -441,6 +464,19 @@ const FinalMatchView = () => {
                   onChange={handleFieldChange}
                   min={0}
                   helperText="Default: 0"
+                />
+
+                <NumericField
+                  label="Skill Coverage"
+                  name="skill_coverage"
+                  value={formData.skill_coverage}
+                  onChange={handleFieldChange}
+                  required
+                  min={0}
+                  step={0.01}
+                  placeholder="e.g. 0.8"
+                  helperText="Coverage ratio (e.g. 0.8 for 80%)"
+                  error={errors.skill_coverage}
                 />
 
                 <FormSelect
@@ -814,15 +850,7 @@ const FinalMatchView = () => {
                   </div>
                 )}
 
-                {/* Raw Model Score */}
-                <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs">
-                  <span className="text-slate-500">Raw final_match:</span>
-                  <span className="font-mono font-semibold text-slate-700">
-                    {result.final_match !== undefined
-                      ? String(result.final_match)
-                      : "N/A"}
-                  </span>
-                </div>
+
 
 
               </div>

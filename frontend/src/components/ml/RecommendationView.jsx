@@ -18,8 +18,12 @@ import {
 import TagMultiSelect from "./TagMultiSelect";
 import StatusBanner from "./StatusBanner";
 
-const RecommendationView = () => {
-  const [skills, setSkills] = useState("Python, Machine Learning, SQL");
+const RecommendationView = ({ initialSkills }) => {
+  const [skills, setSkills] = useState(
+    initialSkills && initialSkills.trim()
+      ? initialSkills
+      : "Python, Machine Learning, SQL"
+  );
   const [topN, setTopN] = useState(5);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,6 +31,12 @@ const RecommendationView = () => {
   const [results, setResults] = useState(null); // Array of recommendations
   const [rawResponse, setRawResponse] = useState(null);
   const [showRawJson, setShowRawJson] = useState(false);
+
+  React.useEffect(() => {
+    if (initialSkills && initialSkills.trim()) {
+      setSkills(initialSkills);
+    }
+  }, [initialSkills]);
 
   const handleLoadSample = () => {
     setSkills(SAMPLE_PAYLOADS.recommendation.skills);
@@ -250,7 +260,7 @@ const RecommendationView = () => {
           <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-slate-400 shadow-xs">
             <Inbox className="mx-auto h-12 w-12 text-slate-300" strokeWidth={1.5} />
             <p className="mt-3 text-base font-semibold text-slate-700">
-              No matching jobs found
+              No matching jobs found for your skills.
             </p>
             <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
               Try adding broader skills such as "Python", "SQL", or "Data Analysis".

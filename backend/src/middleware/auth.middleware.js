@@ -19,17 +19,19 @@ const protect = async (req, res, next) => {
         const token = authHeader.split(" ")[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+        const userId = decoded.userId || decoded.id || decoded._id;
         let role = decoded.role;
-        if (!role) {
-            const user = await User.findById(decoded.userId).select("role");
-            if (user) {
+
+        if (userId) {
+            const user = await User.findById(userId).select("role");
+            if (user && user.role) {
                 role = user.role;
             }
         }
 
         req.user = {
-            _id: decoded.userId,
-            userId: decoded.userId,
+            _id: userId,
+            userId: userId,
             role: role
         };
         next();

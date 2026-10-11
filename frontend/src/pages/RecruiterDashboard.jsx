@@ -1,5 +1,5 @@
  
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   BriefcaseBusiness,
@@ -20,21 +20,33 @@ import {
   Save,
   Hand,
   Sparkles,
+  CheckCircle2,
+  XCircle,
+  Clock3,
+  Filter,
+  Award,
+  Star,
 } from "lucide-react";
 
 import {
-  getJobs,
+  getMyJobs,
   getJobById,
   updateJob,
   updateJobStatus,
   deleteJob,
 } from "../api/jobs";
+import {
+  getAllApplicants,
+  updateApplicationStatus,
+} from "../api/applications";
+import { useToast } from "../context/ToastContext";
 
 const inputClass =
   "w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 
 const RecruiterDashboard = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError, confirm } = useToast();
 
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +55,12 @@ const RecruiterDashboard = () => {
   const [editJobId, setEditJobId] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const [applicants, setApplicants] = useState([]);
+  const [applicantsLoading, setApplicantsLoading] = useState(false);
+  const [applicantJobFilter, setApplicantJobFilter] = useState("all");
+  const [applicantStatusFilter, setApplicantStatusFilter] = useState("all");
+  const [updatingStatusId, setUpdatingStatusId] = useState(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -57,13 +75,13 @@ const RecruiterDashboard = () => {
     applicationDeadline: "",
   });
 
-  // GET: Fetch all recruiter jobs
+  // GET: Fetch this recruiter's own posted jobs
   const loadJobs = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const response = await getJobs();
+      const response = await getMyJobs();
       const data = response.data;
 
       const jobList = Array.isArray(data)
@@ -88,16 +106,120 @@ const RecruiterDashboard = () => {
     }
   };
 
+  // GET: Fetch all applicants for recruiter
+  const loadApplicants = async () => {
+    try {
+      setApplicantsLoading(true);
+      const response = await getAllApplicants();
+      const data = response.data;
+      const appList = Array.isArray(data.applications)
+        ? data.applications
+        : Array.isArray(data)
+        ? data
+        : [];
+      setApplicants(appList);
+    } catch (err) {
+      console.error("GET applicants error:", err);
+      if (err.response?.status === 403) {
+        showError(
+          "Your account does not have Recruiter permissions to view all candidates. Please log in as a Recruiter.",
+          "Access Denied"
+        );
+      } else if (err.response?.status === 401) {
+        showWarning("Please log in to view candidate details.", "Session Expired");
+      }
+    } finally {
+      setApplicantsLoading(false);
+    }
+  };
+
+  const refreshAll = () => {
+    loadJobs();
+    loadApplicants();
+  };
+
   useEffect(() => {
     loadJobs();
+    loadApplicants();
   }, []);
 
-  const totalApplicants = jobs.reduce(
-    (total, job) =>
-      total +
-      Number(job.applicantsCount || job.applicants?.length || 0),
-    0
-  );
+  const totalApplicants = useMemo(() => {
+    if (applicants.length > 0) return applicants.length;
+    return jobs.reduce(
+      (total, job) =>
+        total +
+        Number(job.applicantsCount || job.applicants?.length || 0),
+      0
+    );
+  }, [applicants, jobs]);
+
+  // Scope candidates by currently selected job filter
+  const jobScopedApplicants = useMemo(() => {
+    if (applicantJobFilter === "all") return applicants;
+    return applicants.filter((app) => {
+      const jId =
+        app.job?._id ||
+        (typeof app.job === "string" ? app.job : "") ||
+        app.jobId ||
+        "";
+      return String(jId) === String(applicantJobFilter);
+    });
+  }, [applicants, applicantJobFilter]);
+
+  const shortlistedCount = useMemo(() => {
+    return jobScopedApplicants.filter(
+      (a) => String(a.status).toLowerCase() === "shortlisted"
+    ).length;
+  }, [jobScopedApplicants]);
+
+  const pendingCount = useMemo(() => {
+    return jobScopedApplicants.filter((a) => {
+      const st = String(a.status || "pending").toLowerCase();
+      return st === "pending" || st === "applied";
+    }).length;
+  }, [jobScopedApplicants]);
+
+  const acceptedCount = useMemo(() => {
+    return jobScopedApplicants.filter(
+      (a) => String(a.status).toLowerCase() === "accepted"
+    ).length;
+  }, [jobScopedApplicants]);
+
+  const rejectedCount = useMemo(() => {
+    return jobScopedApplicants.filter(
+      (a) => String(a.status).toLowerCase() === "rejected"
+    ).length;
+  }, [jobScopedApplicants]);
+
+  const filteredApplicants = useMemo(() => {
+    return jobScopedApplicants.filter((app) => {
+      const appStatus = String(app.status || "pending").toLowerCase();
+      const matchesStatus =
+        applicantStatusFilter === "all" ||
+        (applicantStatusFilter === "pending" &&
+          (appStatus === "pending" || appStatus === "applied")) ||
+        appStatus === applicantStatusFilter;
+      return matchesStatus;
+    });
+  }, [jobScopedApplicants, applicantStatusFilter]);
+
+  const handleApplicantStatus = async (appId, newStatus) => {
+    try {
+      setUpdatingStatusId(appId);
+      await updateApplicationStatus(appId, newStatus);
+      setApplicants((prev) =>
+        prev.map((a) => (a._id === appId ? { ...a, status: newStatus } : a))
+      );
+      showSuccess(`Application marked as ${newStatus}!`, "Status Updated");
+    } catch (err) {
+      showError(
+        err.response?.data?.message || "Failed to update application status.",
+        "Update Error"
+      );
+    } finally {
+      setUpdatingStatusId(null);
+    }
+  };
 
   const openJobs = jobs.filter(
     (job) => job.status === "open"
@@ -275,9 +397,13 @@ const RecruiterDashboard = () => {
 
   // DELETE: Remove a job
   const handleDeleteJob = async (jobId) => {
-    const confirmed = window.confirm(
-      "Kya aap sach mein ye job delete karna chahte hain?"
-    );
+    const confirmed = await confirm({
+      title: "Delete Job Listing?",
+      message: "Are you sure you want to permanently delete this job post? This action cannot be undone.",
+      confirmText: "Delete Job",
+      cancelText: "Cancel",
+      type: "danger"
+    });
 
     if (!confirmed) return;
 
@@ -297,14 +423,16 @@ const RecruiterDashboard = () => {
       if (editJobId === jobId) {
         setEditJobId(null);
       }
+
+      showSuccess("Job listing deleted successfully.", "Job Deleted");
     } catch (err) {
       console.error("DELETE job error:", err);
-
-      setError(
+      const errMsg =
         err.response?.data?.message ||
-          err.message ||
-          "Job delete nahi hui."
-      );
+        err.message ||
+        "Job delete nahi hui.";
+      setError(errMsg);
+      showError(errMsg, "Delete Failed");
     }
   };
 
@@ -352,10 +480,10 @@ const RecruiterDashboard = () => {
         </div>
       </nav>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="hidden min-h-[calc(100vh-64px)] w-64 border-r border-slate-200 bg-white md:block">
-          <div className="flex h-full flex-col p-4">
+      <div className="flex min-h-[calc(100vh-64px)] items-start">
+        {/* Sticky Fixed Sidebar */}
+        <aside className="sticky top-16 z-30 hidden h-[calc(100vh-64px)] w-64 shrink-0 overflow-y-auto no-scrollbar border-r border-slate-200 bg-white md:block">
+          <div className="flex h-full flex-col justify-between p-4">
             <div className="space-y-2">
               <a
                 href="#dashboard"
@@ -383,10 +511,34 @@ const RecruiterDashboard = () => {
 
               <a
                 href="#applicants"
+                onClick={() => {
+                  setApplicantStatusFilter("all");
+                }}
                 className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-blue-600"
               >
                 <Users size={19} />
                 Applicants
+                {totalApplicants > 0 && (
+                  <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600">
+                    {totalApplicants}
+                  </span>
+                )}
+              </a>
+
+              <a
+                href="#shortlisted"
+                onClick={() => {
+                  setApplicantStatusFilter("shortlisted");
+                }}
+                className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-blue-600"
+              >
+                <Award size={19} className="text-amber-500" />
+                Shortlisted Students
+                {shortlistedCount > 0 && (
+                  <span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">
+                    {shortlistedCount}
+                  </span>
+                )}
               </a>
 
               <Link
@@ -516,18 +668,24 @@ const RecruiterDashboard = () => {
                 </p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div
+                onClick={() => {
+                  setApplicantStatusFilter("shortlisted");
+                  document.getElementById("applicants")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="cursor-pointer rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:border-orange-300 hover:shadow transition"
+              >
                 <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-orange-50">
-                  <Users
+                  <Award
                     size={22}
                     className="text-orange-600"
                   />
                 </div>
-                <p className="text-sm text-slate-500">
-                  Shortlisted
+                <p className="text-sm font-semibold text-orange-700">
+                  Shortlisted Students
                 </p>
                 <p className="mt-1 text-2xl font-bold text-slate-900">
-                  0
+                  {applicantsLoading ? "..." : shortlistedCount}
                 </p>
               </div>
             </div>
@@ -818,11 +976,14 @@ const RecruiterDashboard = () => {
 
                 <div className="flex flex-wrap gap-3">
                   <button
-                    onClick={loadJobs}
-                    disabled={loading}
-                    className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    onClick={refreshAll}
+                    disabled={loading || applicantsLoading}
+                    className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
                   >
-                    <RefreshCw size={16} />
+                    <RefreshCw
+                      size={16}
+                      className={loading || applicantsLoading ? "animate-spin text-blue-600" : ""}
+                    />
                     Refresh
                   </button>
 
@@ -896,6 +1057,14 @@ const RecruiterDashboard = () => {
                               >
                                 {job.status || "open"}
                               </span>
+
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-700">
+                                <Users size={13} />
+                                {job.applicantsCount ?? 0}{" "}
+                                {job.applicantsCount === 1
+                                  ? "Applicant"
+                                  : "Applicants"}
+                              </span>
                             </div>
 
                             <p className="mt-1 text-sm text-slate-600">
@@ -943,6 +1112,21 @@ const RecruiterDashboard = () => {
                         {/* Job Actions */}
                         <div className="flex flex-wrap items-center gap-2">
                           <button
+                            onClick={() => {
+                              setApplicantJobFilter(String(job._id));
+                              setApplicantStatusFilter("all");
+                              document
+                                .getElementById("applicants")
+                                ?.scrollIntoView({ behavior: "smooth" });
+                            }}
+                            className="flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-100 transition cursor-pointer"
+                            title="View applicants for this job"
+                          >
+                            <Users size={16} />
+                            Applicants ({job.applicantsCount ?? 0})
+                          </button>
+
+                          <button
                             onClick={() => handleViewJob(job._id)}
                             className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
                           >
@@ -982,30 +1166,324 @@ const RecruiterDashboard = () => {
               )}
             </section>
 
-            {/* AI Insights */}
+            {/* Live Applicants Section */}
+            <div id="shortlisted" className="scroll-mt-24" />
             <section
               id="applicants"
-              className="mt-8 rounded-xl border border-blue-100 bg-blue-50 p-6"
+              className="mt-8 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden scroll-mt-24"
             >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-blue-600">
-                  <Users size={21} className="text-white" />
+              <div className="flex flex-col gap-4 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 text-purple-700">
+                      {applicantStatusFilter === "shortlisted" ? (
+                        <Award size={20} className="text-orange-600" />
+                      ) : (
+                        <Users size={20} />
+                      )}
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-900">
+                        {applicantStatusFilter === "shortlisted"
+                          ? "Shortlisted Students"
+                          : "Applicants & Candidates"}
+                      </h2>
+                      <p className="text-xs text-slate-500">
+                        {applicantStatusFilter === "shortlisted"
+                          ? "Candidate students you have shortlisted for further interviews and evaluation."
+                          : "Real-time applications received for your posted jobs."}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <h2 className="font-bold text-slate-900">
-                    AI Candidate Insights
-                  </h2>
-                  <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
-                    Candidate-role fit scores and applicant
-                    insights can be displayed here after the ML
-                    model is connected.
-                  </p>
-                  <p className="mt-3 text-xs font-medium text-blue-700">
-                    ML integration can be added separately.
-                  </p>
+                {/* Filter by Job */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-slate-500">
+                    Filter by Job:
+                  </span>
+                  <select
+                    value={applicantJobFilter}
+                    onChange={(e) => setApplicantJobFilter(e.target.value)}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:border-purple-500"
+                  >
+                    <option value="all">
+                      All Jobs ({applicants.length})
+                    </option>
+                    {jobs.map((j) => (
+                      <option key={j._id} value={j._id}>
+                        {j.title} ({j.applicantsCount ?? 0})
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
+
+              {/* Status Filter Tabs */}
+              <div className="flex flex-wrap items-center gap-2 bg-slate-50/70 px-5 py-3 border-b border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setApplicantStatusFilter("all")}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                    applicantStatusFilter === "all"
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                  }`}
+                >
+                  All Candidates ({jobScopedApplicants.length})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setApplicantStatusFilter("shortlisted")}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                    applicantStatusFilter === "shortlisted"
+                      ? "bg-orange-600 text-white shadow-xs"
+                      : "border border-orange-200 bg-orange-50 text-orange-800 hover:bg-orange-100/70"
+                  }`}
+                >
+                  <Award size={14} />
+                  Shortlisted Students ({shortlistedCount})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setApplicantStatusFilter("pending")}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                    applicantStatusFilter === "pending"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                  }`}
+                >
+                  Under Review ({pendingCount})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setApplicantStatusFilter("accepted")}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                    applicantStatusFilter === "accepted"
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                  }`}
+                >
+                  Accepted ({acceptedCount})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setApplicantStatusFilter("rejected")}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                    applicantStatusFilter === "rejected"
+                      ? "bg-rose-600 text-white shadow-xs"
+                      : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                  }`}
+                >
+                  Not Selected ({rejectedCount})
+                </button>
+              </div>
+
+              {/* Shortlisted banner if shortlisted tab is active */}
+              {applicantStatusFilter === "shortlisted" && (
+                <div className="bg-amber-50/80 border-b border-amber-100 px-5 py-2.5 text-xs text-amber-900 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 font-semibold">
+                    <Award size={15} className="text-amber-600" />
+                    Viewing Shortlisted Students ({filteredApplicants.length})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setApplicantStatusFilter("all")}
+                    className="text-amber-700 underline font-semibold hover:text-amber-900 cursor-pointer"
+                  >
+                    View All Applicants
+                  </button>
+                </div>
+              )}
+
+              {/* Applicants Content */}
+              {applicantsLoading ? (
+                <div className="p-12 text-center text-slate-500">
+                  <RefreshCw
+                    size={28}
+                    className="mx-auto animate-spin text-purple-600"
+                  />
+                  <p className="mt-3 text-sm">Loading applicants...</p>
+                </div>
+              ) : filteredApplicants.length === 0 ? (
+                <div className="p-12 text-center">
+                  {applicantStatusFilter === "shortlisted" ? (
+                    <Award size={44} className="mx-auto text-amber-300" />
+                  ) : (
+                    <Users size={44} className="mx-auto text-slate-300" />
+                  )}
+                  <h3 className="mt-3 text-base font-semibold text-slate-800">
+                    {applicantStatusFilter === "shortlisted"
+                      ? "No shortlisted students yet"
+                      : "No applicants found"}
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
+                    {applicantStatusFilter === "shortlisted"
+                      ? "Review applicants in the 'All Candidates' or 'Under Review' tab and click 'Shortlist' to add students here."
+                      : applicantJobFilter === "all"
+                      ? "No candidates have applied to these jobs yet. Once a student submits an application, it will appear here instantly."
+                      : "No candidates have applied for this specific job position yet."}
+                  </p>
+                  {applicantStatusFilter !== "all" && (
+                    <button
+                      type="button"
+                      onClick={() => setApplicantStatusFilter("all")}
+                      className="mt-3 text-xs font-bold text-blue-600 hover:underline cursor-pointer"
+                    >
+                      View All Candidates ({jobScopedApplicants.length})
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {filteredApplicants.map((app) => {
+                    const studentName =
+                      app.student?.name || "Student Candidate";
+                    const studentEmail =
+                      app.student?.email || "candidate@internmatch.ai";
+                    const jobTitle =
+                      app.job?.title ||
+                      jobs.find(
+                        (j) =>
+                          String(j._id) ===
+                          String(
+                            app.job?._id ||
+                              (typeof app.job === "string" ? app.job : "") ||
+                              app.jobId ||
+                              ""
+                          )
+                      )?.title ||
+                      "Job Role";
+
+                    const status = String(app.status || "pending").toLowerCase();
+                    const appliedDate = app.createdAt
+                      ? new Date(app.createdAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "Recently";
+
+                    let statusBadgeClass =
+                      "bg-amber-50 text-amber-700 border-amber-200";
+                    let statusLabel = "Under Review";
+                    if (status === "shortlisted") {
+                      statusBadgeClass =
+                        "bg-blue-50 text-blue-700 border-blue-200";
+                      statusLabel = "Shortlisted";
+                    } else if (status === "accepted") {
+                      statusBadgeClass =
+                        "bg-emerald-50 text-emerald-700 border-emerald-200";
+                      statusLabel = "Accepted";
+                    } else if (status === "rejected") {
+                      statusBadgeClass =
+                        "bg-rose-50 text-rose-700 border-rose-200";
+                      statusLabel = "Not Selected";
+                    }
+
+                    return (
+                      <div
+                        key={app._id}
+                        className="p-5 transition hover:bg-slate-50/70 sm:p-6"
+                      >
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-start gap-3.5">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 font-bold text-white shadow-xs">
+                              {studentName.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="font-bold text-slate-900 text-sm sm:text-base">
+                                  {studentName}
+                                </h4>
+                                <span
+                                  className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${statusBadgeClass}`}
+                                >
+                                  {statusLabel}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                {studentEmail} · Applied for{" "}
+                                <span className="font-semibold text-slate-800">
+                                  {jobTitle}
+                                </span>
+                              </p>
+                              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                                <span className="flex items-center gap-1">
+                                  <Clock3 size={13} />
+                                  Applied on {appliedDate}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex flex-wrap items-center gap-2 sm:self-center">
+                            {status !== "shortlisted" && status !== "accepted" && (
+                              <button
+                                type="button"
+                                disabled={updatingStatusId === app._id}
+                                onClick={() =>
+                                  handleApplicantStatus(app._id, "shortlisted")
+                                }
+                                className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-50 transition cursor-pointer"
+                              >
+                                <CheckCircle2 size={14} />
+                                Shortlist
+                              </button>
+                            )}
+
+                            {status !== "accepted" && (
+                              <button
+                                type="button"
+                                disabled={updatingStatusId === app._id}
+                                onClick={() =>
+                                  handleApplicantStatus(app._id, "accepted")
+                                }
+                                className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 disabled:opacity-50 transition cursor-pointer"
+                              >
+                                <CheckCircle2 size={14} />
+                                Accept
+                              </button>
+                            )}
+
+                            {status !== "rejected" && (
+                              <button
+                                type="button"
+                                disabled={updatingStatusId === app._id}
+                                onClick={() =>
+                                  handleApplicantStatus(app._id, "rejected")
+                                }
+                                className="flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50 transition cursor-pointer"
+                              >
+                                <XCircle size={14} />
+                                Reject
+                              </button>
+                            )}
+
+                            {status !== "pending" && (
+                              <button
+                                type="button"
+                                disabled={updatingStatusId === app._id}
+                                onClick={() =>
+                                  handleApplicantStatus(app._id, "pending")
+                                }
+                                className="text-xs text-slate-400 hover:text-slate-600 underline ml-1 cursor-pointer"
+                              >
+                                Reset
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </section>
           </div>
         </main>

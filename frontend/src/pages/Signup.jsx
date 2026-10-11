@@ -13,9 +13,11 @@ import {
 } from "lucide-react";
 
 import { signup } from "../api/auth";
+import { useToast } from "../context/ToastContext";
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError, showWarning } = useToast();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -41,19 +43,20 @@ const Signup = () => {
     e.preventDefault();
 
     if (!emailRegex.test(formData.email)) {
-      alert("Please enter a valid email");
+      showWarning("Please enter a valid email address.", "Invalid Email");
       return;
     }
 
     if (!passwordRegex.test(formData.password)) {
-      alert(
-        "Password must be at least 8 characters and contain a number"
+      showWarning(
+        "Password must be at least 8 characters and contain a number",
+        "Password Requirement"
       );
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
+      showWarning("Passwords do not match. Please check again.", "Password Mismatch");
       return;
     }
 
@@ -69,16 +72,19 @@ const Signup = () => {
 
       console.log("Signup response:", response.data);
 
-      alert("Signup successful! Please login.");
+      showSuccess("Account created successfully! Redirecting to login...", "Registration Successful");
 
       // Student aur Recruiter dono same login page par jayenge
-      navigate("/login");
+      setTimeout(() => {
+        navigate("/login");
+      }, 600);
     } catch (error) {
       console.log("Signup error:", error);
 
-      alert(
+      showError(
         error.response?.data?.message ||
-          "Signup failed. Please try again."
+          "Signup failed. Please try again.",
+        "Registration Error"
       );
     } finally {
       setLoading(false);
@@ -112,8 +118,8 @@ const Signup = () => {
               </p>
             </div>
 
-            {/* FORM */}
-            <form onSubmit={handleSignup}>
+            {/* FORM CONTAINER */}
+            <div onKeyDown={(e) => { if (e.key === "Enter") handleSignup(e); }}>
 
               {/* ROLE */}
               <div className="mb-4">
@@ -181,7 +187,8 @@ const Signup = () => {
                     placeholder="Enter your email"
                     value={formData.email}
                     onChange={handleChange}
-                    required
+                    autoComplete="off"
+                    data-form-type="other"
                     className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   />
                 </div>
@@ -205,7 +212,8 @@ const Signup = () => {
                     placeholder="Enter password"
                     value={formData.password}
                     onChange={handleChange}
-                    required
+                    autoComplete="new-password"
+                    data-form-type="other"
                     className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   />
                 </div>
@@ -229,7 +237,8 @@ const Signup = () => {
                     placeholder="Confirm password"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    required
+                    autoComplete="new-password"
+                    data-form-type="other"
                     className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   />
                 </div>
@@ -237,7 +246,8 @@ const Signup = () => {
 
               {/* SIGNUP BUTTON */}
               <button
-                type="submit"
+                type="button"
+                onClick={handleSignup}
                 disabled={loading}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -250,7 +260,7 @@ const Signup = () => {
                   </>
                 )}
               </button>
-            </form>
+            </div>
 
             {/* LOGIN LINK */}
             <p className="mt-6 text-center text-sm text-slate-500">

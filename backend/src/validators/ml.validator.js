@@ -93,6 +93,16 @@ const validateFinalMatchInput = (req, res, next) => {
         });
     }
 
+    if (data.skill_coverage !== undefined && data.skill_coverage !== null) {
+        if (typeof data.skill_coverage !== "number" || !Number.isFinite(data.skill_coverage) || data.skill_coverage < 0) {
+            return res.status(400).json({
+                success: false,
+                message: "skill_coverage must be a non-negative number",
+                invalidFields: ["skill_coverage"]
+            });
+        }
+    }
+
     if (data.student_cgpa <= 0) {
         return res.status(400).json({
             success: false,

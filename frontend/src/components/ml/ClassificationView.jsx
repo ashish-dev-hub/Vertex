@@ -47,7 +47,7 @@ const initialForm = {
   student_experience_level: "Beginner",
   student_weekly_study_hours: "",
   student_career_label: "",
-  skill_coverage: ""
+  skill_coverage: 0.8
 };
 
 const ClassificationView = () => {
@@ -101,7 +101,7 @@ const ClassificationView = () => {
       student_experience_level: "",
       student_weekly_study_hours: "",
       student_career_label: "",
-      skill_coverage: ""
+      skill_coverage: 0.8
     });
     setResult(null);
     setRawResponse(null);
@@ -157,6 +157,14 @@ const ClassificationView = () => {
     if (formData.job_duration_months === "" || Number(formData.job_duration_months) <= 0) {
       errs.job_duration_months = "Duration must be > 0";
     }
+    if (
+      formData.skill_coverage === "" ||
+      formData.skill_coverage === null ||
+      isNaN(Number(formData.skill_coverage)) ||
+      Number(formData.skill_coverage) < 0
+    ) {
+      errs.skill_coverage = "Skill coverage is required (≥ 0)";
+    }
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -207,13 +215,10 @@ const ClassificationView = () => {
     if (formData.candidate_location) payload.candidate_location = formData.candidate_location;
     if (formData.industry) payload.industry = formData.industry;
     if (formData.student_experience_level) payload.student_experience_level = formData.student_experience_level;
-    if (formData.student_career_label) payload.student_career_label = formData.student_career_label;
     if (formData.student_weekly_study_hours !== "") {
       payload.student_weekly_study_hours = Number(formData.student_weekly_study_hours);
     }
-    if (formData.skill_coverage !== "") {
-      payload.skill_coverage = Number(formData.skill_coverage);
-    }
+    payload.skill_coverage = Number(formData.skill_coverage);
 
     try {
       const response = await getClassification(payload);
@@ -440,6 +445,19 @@ const ClassificationView = () => {
                 helperText="e.g. LeetCode / CodeChef"
                 error={errors.student_coding_platform_rating}
               />
+
+              <NumericField
+                label="Skill Coverage"
+                name="skill_coverage"
+                value={formData.skill_coverage}
+                onChange={handleFieldChange}
+                required
+                min={0}
+                step={0.01}
+                placeholder="e.g. 0.8"
+                helperText="Coverage ratio (e.g. 0.8 for 80%)"
+                error={errors.skill_coverage}
+              />
             </div>
 
             <div className="mt-4">
@@ -658,25 +676,7 @@ const ClassificationView = () => {
                   </div>
                 </div>
 
-                {/* Raw Model Score Note as specified in Section 4:
-                    "fit_score is a raw model score; do not label it a probability unless documented by the ML team." */}
-                <div className="rounded-xl border border-slate-200/80 bg-white p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Raw Model Score
-                      </span>
-                      <p className="text-xs text-slate-400">
-                        (Raw score, not a probability)
-                      </p>
-                    </div>
-                    <span className="font-mono text-base font-bold text-slate-800">
-                      {result.fit_score !== undefined
-                        ? String(result.fit_score)
-                        : "N/A"}
-                    </span>
-                  </div>
-                </div>
+
 
 
               </div>

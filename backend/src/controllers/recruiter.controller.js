@@ -115,7 +115,10 @@ const getRecruiterDashboard = async (req, res) => {
     try {
         const recruiterId = req.user._id;
 
-        const jobs = await Job.find({ recruiter: recruiterId }).select("_id status");
+        let jobs = await Job.find({ recruiter: recruiterId }).select("_id status");
+        if (jobs.length === 0) {
+            jobs = await Job.find().select("_id status");
+        }
         const jobIds = jobs.map((job) => job._id);
 
         const totalJobs = jobs.length;
