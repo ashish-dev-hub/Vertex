@@ -463,10 +463,10 @@ const RecruiterDashboard = () => {
           <div className="flex items-center gap-3">
             <div className="hidden text-right sm:block">
               <p className="text-sm font-semibold text-slate-800">
-                Recruiter
+                {localStorage.getItem("userName") || "Recruiter"}
               </p>
               <p className="text-xs text-slate-500">
-                Recruiter Panel
+                {localStorage.getItem("userEmail") || "Recruiter Panel"}
               </p>
             </div>
 

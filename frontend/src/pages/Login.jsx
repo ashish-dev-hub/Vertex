@@ -96,6 +96,8 @@ const Login = () => {
       const user = response.data.user;
       const userRole = user?.role || formData.role;
       localStorage.setItem("userRole", userRole);
+      if (user?.name) localStorage.setItem("userName", user.name);
+      if (user?.email) localStorage.setItem("userEmail", user.email);
 
       // Check if password has a commonly breached pattern
       const isCommonWeak = [

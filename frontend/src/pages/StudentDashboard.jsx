@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 
 import { getStudentProfile } from "../api/studentProfile";
+import { getMe } from "../api/auth";
 import { getJobs } from "../api/jobs";
 import { applyToJob, getMyApplications } from "../api/applications";
 import ClassificationView from "../components/ml/ClassificationView";
@@ -132,8 +133,10 @@ const StudentDashboard = () => {
           result?.data ||
           result;
 
-        if (active) {
-          setProfile(student || {});
+        if (active && student) {
+          setProfile(student);
+          if (student.user?.name) localStorage.setItem("userName", student.user.name);
+          if (student.user?.email) localStorage.setItem("userEmail", student.user.email);
         }
       } catch (error) {
         if (active) {
@@ -145,6 +148,27 @@ const StudentDashboard = () => {
         }
       } finally {
         if (active) setProfileLoading(false);
+      }
+    };
+
+    const fetchCurrentUser = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        const res = await getMe();
+        const u = res.data?.user || res.data;
+        if (u && active) {
+          if (u.name) localStorage.setItem("userName", u.name);
+          if (u.email) localStorage.setItem("userEmail", u.email);
+          setProfile((prev) => ({
+            ...prev,
+            user: { ...(prev.user || {}), ...u },
+            name: prev.name || u.name,
+            email: prev.email || u.email,
+          }));
+        }
+      } catch (err) {
+        console.warn("fetchCurrentUser error:", err);
       }
     };
 
@@ -255,6 +279,7 @@ const StudentDashboard = () => {
       }
     };
 
+    fetchCurrentUser();
     fetchProfile();
     fetchPostedJobs();
     fetchApplications();
@@ -265,9 +290,17 @@ const StudentDashboard = () => {
   }, []);
 
   const studentName =
-    profile.fullName?.trim?.() ||
     profile.name?.trim?.() ||
-    "Student";
+    profile.fullName?.trim?.() ||
+    profile.user?.name?.trim?.() ||
+    localStorage.getItem("userName")?.trim?.() ||
+    "Student User";
+
+  const studentEmail =
+    profile.email?.trim?.() ||
+    profile.user?.email?.trim?.() ||
+    localStorage.getItem("userEmail")?.trim?.() ||
+    "";
 
   const studentSkills = useMemo(() => {
     return Array.isArray(profile.skills)
@@ -767,7 +800,7 @@ const StudentDashboard = () => {
                     {studentName}
                   </span>
                   <span className="text-[10px] font-medium text-slate-400">
-                    Student
+                    Student User
                   </span>
                 </div>
 
@@ -791,12 +824,12 @@ const StudentDashboard = () => {
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-bold text-slate-900">{studentName}</p>
                         <p className="truncate text-[11px] text-slate-500">
-                          {profile.email || "student@internmatch.ai"}
+                          {studentEmail || "student@internmatch.ai"}
                         </p>
                       </div>
                     </div>
                     <div className="mt-2.5 flex items-center justify-between border-t border-blue-200/40 pt-2 text-[10px]">
-                      <span className="font-semibold text-blue-700">Student Account</span>
+                      <span className="font-semibold text-blue-700">Student User</span>
                       <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 font-bold text-emerald-700">
                         Verified
                       </span>
