@@ -26,6 +26,7 @@ import {
   Filter,
   Award,
   Star,
+  ShieldCheck,
 } from "lucide-react";
 
 import {
@@ -40,6 +41,7 @@ import {
   updateApplicationStatus,
 } from "../api/applications";
 import { useToast } from "../context/ToastContext";
+import RecruiterFinalMatchModal from "../components/recruiter/RecruiterFinalMatchModal";
 
 const inputClass =
   "w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
@@ -61,6 +63,7 @@ const RecruiterDashboard = () => {
   const [applicantJobFilter, setApplicantJobFilter] = useState("all");
   const [applicantStatusFilter, setApplicantStatusFilter] = useState("all");
   const [updatingStatusId, setUpdatingStatusId] = useState(null);
+  const [evaluatingApplicant, setEvaluatingApplicant] = useState(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -203,12 +206,12 @@ const RecruiterDashboard = () => {
     });
   }, [jobScopedApplicants, applicantStatusFilter]);
 
-  const handleApplicantStatus = async (appId, newStatus) => {
+  const handleApplicantStatus = async (appId, newStatus, additionalData = {}) => {
     try {
       setUpdatingStatusId(appId);
-      await updateApplicationStatus(appId, newStatus);
+      await updateApplicationStatus(appId, newStatus, additionalData);
       setApplicants((prev) =>
-        prev.map((a) => (a._id === appId ? { ...a, status: newStatus } : a))
+        prev.map((a) => (a._id === appId ? { ...a, status: newStatus, ...additionalData } : a))
       );
       showSuccess(`Application marked as ${newStatus}!`, "Status Updated");
     } catch (err) {
@@ -1405,6 +1408,19 @@ const RecruiterDashboard = () => {
                                 >
                                   {statusLabel}
                                 </span>
+
+                                {app.finalMatchScore != null && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 border border-cyan-200 px-2 py-0.5 text-[11px] font-bold text-cyan-800">
+                                    <ShieldCheck size={12} className="text-cyan-700" />
+                                    Final Match: {app.finalMatchScore}% ({app.finalMatchLabel || "Evaluated"})
+                                  </span>
+                                )}
+
+                                {app.fitScore != null && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
+                                    Candidate Fit: {app.fitScore}%
+                                  </span>
+                                )}
                               </div>
                               <p className="text-xs text-slate-500 mt-0.5">
                                 {studentEmail} · Applied for{" "}
@@ -1423,6 +1439,16 @@ const RecruiterDashboard = () => {
 
                           {/* Action Buttons */}
                           <div className="flex flex-wrap items-center gap-2 sm:self-center">
+                            {/* Run Final Match Evaluation Button */}
+                            <button
+                              type="button"
+                              onClick={() => setEvaluatingApplicant(app)}
+                              className="flex items-center gap-1.5 rounded-lg border border-cyan-300 bg-cyan-50 px-3 py-1.5 text-xs font-bold text-cyan-800 hover:bg-cyan-100 shadow-2xs transition cursor-pointer"
+                              title="Run AI Final Match Evaluation for this candidate"
+                            >
+                              <ShieldCheck size={14} className="text-cyan-700" />
+                              Final Match AI
+                            </button>
                             {status !== "shortlisted" && status !== "accepted" && (
                               <button
                                 type="button"
@@ -1488,6 +1514,15 @@ const RecruiterDashboard = () => {
           </div>
         </main>
       </div>
+
+      {/* Recruiter Final Match AI Evaluation Modal */}
+      {evaluatingApplicant && (
+        <RecruiterFinalMatchModal
+          applicant={evaluatingApplicant}
+          onClose={() => setEvaluatingApplicant(null)}
+          onUpdateStatus={handleApplicantStatus}
+        />
+      )}
     </div>
   );
 };

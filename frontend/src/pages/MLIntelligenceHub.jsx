@@ -48,8 +48,7 @@ const MLIntelligenceHub = ({ role }) => {
         return (
           tab.id === "classification" ||
           tab.id === "regression" ||
-          tab.id === "recommendation" ||
-          tab.id === "final-match"
+          tab.id === "recommendation"
         );
       }
       if (role === "recruiter") {

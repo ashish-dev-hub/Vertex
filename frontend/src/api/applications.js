@@ -17,11 +17,11 @@ const authConfig = () => {
 };
 
 // 1. Student applies to a job
-// Body: { jobId: "<mongoId>" }
-export const applyToJob = (jobId) => {
+// Body: { jobId: "<mongoId>", fitScore, suitable, predictedSalary, candidateSkills }
+export const applyToJob = (jobId, data = {}) => {
   return axios.post(
     `${API_URL}/api/applications`,
-    { jobId },
+    { jobId, ...data },
     authConfig()
   );
 };
@@ -52,10 +52,10 @@ export const getApplicantsForJob = (jobId) => {
 
 // 5. Recruiter: update application status
 // status: "pending" | "shortlisted" | "accepted" | "rejected"
-export const updateApplicationStatus = (applicationId, status) => {
+export const updateApplicationStatus = (applicationId, status, additionalData = {}) => {
   return axios.patch(
     `${API_URL}/api/applications/${applicationId}/status`,
-    { status },
+    { status, ...additionalData },
     authConfig()
   );
 };

@@ -23,6 +23,31 @@ const applicationSchema = new mongoose.Schema(
                 "rejected"
             ],
             default: "pending"
+        },
+
+        fitScore: {
+            type: Number
+        },
+
+        suitable: {
+            type: Boolean
+        },
+
+        predictedSalary: {
+            type: Number
+        },
+
+        candidateSkills: {
+            type: [String],
+            default: []
+        },
+
+        finalMatchScore: {
+            type: Number
+        },
+
+        finalMatchLabel: {
+            type: String
         }
     },
     {

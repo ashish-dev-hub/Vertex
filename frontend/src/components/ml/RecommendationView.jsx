@@ -8,7 +8,8 @@ import {
   Briefcase,
   Layers,
   Inbox,
-  Award
+  Award,
+  ArrowUpRight
 } from "lucide-react";
 import { getRecommendation, extractData, parseApiError } from "../../api/ml";
 import {
@@ -18,7 +19,7 @@ import {
 import TagMultiSelect from "./TagMultiSelect";
 import StatusBanner from "./StatusBanner";
 
-const RecommendationView = ({ initialSkills }) => {
+const RecommendationView = ({ initialSkills, onApplyJob }) => {
   const [skills, setSkills] = useState(
     initialSkills && initialSkills.trim()
       ? initialSkills
@@ -361,7 +362,26 @@ const RecommendationView = ({ initialSkills }) => {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between text-xs text-slate-400">
+                  {onApplyJob && (
+                    <button
+                      type="button"
+                      onClick={() => onApplyJob({
+                        role: item.job_title,
+                        title: item.job_title,
+                        skills: item.required_skills,
+                        similarityScore: item.similarity_score,
+                        company: "Vertex Partner Company",
+                        location: "Delhi NCR / Remote",
+                        workMode: "hybrid"
+                      })}
+                      className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl bg-purple-600 px-3 py-2 text-xs font-bold text-white shadow-xs hover:bg-purple-700 transition cursor-pointer"
+                    >
+                      <span>Apply for this Role</span>
+                      <ArrowUpRight size={14} />
+                    </button>
+                  )}
+
+                  <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between text-xs text-slate-400">
                     <span className="inline-flex items-center gap-1">
                       <Award size={13} className="text-purple-500" />
                       Role Match

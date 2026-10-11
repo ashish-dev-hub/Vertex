@@ -3,7 +3,8 @@ const Application = require("../models/Application");
 const Job = require("../models/Job");
 
 const applyToJob = async (req, res) => {   // Student applies for a job
-    try {const { jobId } = req.body;
+    try {
+        const { jobId, fitScore, suitable, predictedSalary, candidateSkills } = req.body;
         if (!jobId) {
             return res.status(400).json({
                 success: false,
@@ -53,7 +54,11 @@ const applyToJob = async (req, res) => {   // Student applies for a job
 
         const application = await Application.create({
             student: req.user._id,
-            job: jobId
+            job: jobId,
+            fitScore: fitScore != null ? Number(fitScore) : undefined,
+            suitable: suitable != null ? Boolean(suitable) : undefined,
+            predictedSalary: predictedSalary != null ? Number(predictedSalary) : undefined,
+            candidateSkills: Array.isArray(candidateSkills) ? candidateSkills : (typeof candidateSkills === "string" ? candidateSkills.split(",").map(s => s.trim()).filter(Boolean) : [])
         });
 
         return res.status(201).json({
@@ -282,6 +287,12 @@ const updateApplicationStatus = async (req, res) => {
         }
 
         application.status = status;
+        if (req.body.finalMatchScore != null) {
+            application.finalMatchScore = Number(req.body.finalMatchScore);
+        }
+        if (req.body.finalMatchLabel) {
+            application.finalMatchLabel = String(req.body.finalMatchLabel);
+        }
 
         await application.save();
 
@@ -313,13 +324,29 @@ const getAllApplicants = async (req, res) => {
 
         const applications = await Application.find(filter)
             .populate("student", "name email")
-            .populate("job", "title location workMode company")
-            .sort({ createdAt: -1 });
+            .populate("job", "title location workMode company skills experience salaryMin salaryMax")
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Enrich with StudentProfile details
+        const StudentProfile = require("../models/StudentProfile");
+        const studentIds = applications.map((a) => a.student?._id).filter(Boolean);
+        const profiles = await StudentProfile.find({ user: { $in: studentIds } }).lean();
+        const profileMap = new Map(profiles.map((p) => [String(p.user), p]));
+
+        const enrichedApplications = applications.map((app) => {
+            const sId = app.student?._id ? String(app.student._id) : null;
+            const profile = sId ? profileMap.get(sId) : null;
+            return {
+                ...app,
+                studentProfile: profile || null
+            };
+        });
 
         return res.status(200).json({
             success: true,
-            count: applications.length,
-            applications
+            count: enrichedApplications.length,
+            applications: enrichedApplications
         });
     } catch (error) {
         console.error("Get all applicants error:", error);

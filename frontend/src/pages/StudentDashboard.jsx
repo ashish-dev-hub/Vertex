@@ -17,8 +17,6 @@ import {
   LayoutDashboard,
   LogOut,
   SlidersHorizontal,
-  BrainCircuit,
-  TrendingUp,
   Compass,
   ShieldCheck,
   ArrowLeft,
@@ -37,10 +35,8 @@ import { getStudentProfile } from "../api/studentProfile";
 import { getMe } from "../api/auth";
 import { getJobs } from "../api/jobs";
 import { applyToJob, getMyApplications } from "../api/applications";
-import ClassificationView from "../components/ml/ClassificationView";
-import RegressionView from "../components/ml/RegressionView";
 import RecommendationView from "../components/ml/RecommendationView";
-import FinalMatchView from "../components/ml/FinalMatchView";
+import JobApplicationFlowModal from "../components/student/JobApplicationFlowModal";
 import { useToast } from "../context/ToastContext";
 
 const getStoredArray = (key) => {
@@ -91,8 +87,8 @@ const StudentDashboard = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const [viewMode, setViewMode] = useState("jobs"); // "jobs" | "ml-workflow"
-  const [mlStep, setMlStep] = useState("classification"); // "classification" | "regression" | "recommendation"
+  const [viewMode, setViewMode] = useState("jobs"); // "jobs" | "recommendations"
+  const [applicationModalJob, setApplicationModalJob] = useState(null);
 
   const [savedJobs, setSavedJobs] = useState(() =>
     getStoredArray("savedStudentJobs")
@@ -383,9 +379,6 @@ const StudentDashboard = () => {
         (activeFilter === "Remote" &&
           (job.workMode?.toLowerCase() === "remote" ||
             job.location?.toLowerCase().includes("remote"))) ||
-        (activeFilter === "High Match" &&
-          job.fit !== null &&
-          job.fit >= 80) ||
         (activeFilter === "Internships" &&
           job.type?.toLowerCase().includes("intern"));
 
@@ -420,8 +413,7 @@ const StudentDashboard = () => {
     selectedExperience,
   ]);
 
-  const handleApply = async (job) => {
-    const jobId = job._id || job.id;
+  const handleApply = (job) => {
     const token = localStorage.getItem("token");
     if (!token) {
       showWarning("Please log in first to apply for jobs.", "Authentication Required");
@@ -434,64 +426,8 @@ const StudentDashboard = () => {
       return;
     }
 
-    setApplyingJobId(jobId);
-    setApplyNotification(null);
-
-    try {
-      const res = await applyToJob(jobId);
-      const backendApp = res.data?.application || {};
-      const newApp = {
-        ...backendApp,
-        job: job,
-        jobId: jobId,
-        role: job.role,
-        company: job.company,
-        fit: job.fit,
-        status: backendApp.status || "pending",
-        appliedOn: new Date().toLocaleDateString("en-IN"),
-        createdAt: backendApp.createdAt || new Date().toISOString(),
-      };
-
-      const updated = [newApp, ...applications];
-      setApplications(updated);
-      localStorage.setItem("studentApplications", JSON.stringify(updated));
-
-      setApplyNotification({
-        type: "success",
-        message: `Application submitted successfully for ${job.role} at ${job.company}! Your AI Match Score has been unlocked.`,
-      });
-      showSuccess(`Application submitted successfully for ${job.role}! AI Match Score unlocked.`, "Application Sent");
-    } catch (err) {
-      if (err.response?.status === 409) {
-        const dummyApp = {
-          job: job,
-          jobId: jobId,
-          role: job.role,
-          company: job.company,
-          fit: job.fit,
-          status: "pending",
-          appliedOn: new Date().toLocaleDateString("en-IN"),
-          createdAt: new Date().toISOString(),
-        };
-        const updated = [dummyApp, ...applications];
-        setApplications(updated);
-        localStorage.setItem("studentApplications", JSON.stringify(updated));
-        setApplyNotification({
-          type: "info",
-          message: `You have already applied for this job. AI Match Score unlocked.`,
-        });
-        showInfo("You have already applied for this job. AI Match Score unlocked.", "Notice");
-      } else {
-        showError(
-          err.response?.data?.message ||
-            err.message ||
-            "Unable to submit application. Please try again.",
-          "Application Failed"
-        );
-      }
-    } finally {
-      setApplyingJobId(null);
-    }
+    // Launch guided 3-step application assessment modal (Fit -> Salary -> Confirm)
+    setApplicationModalJob(job);
   };
 
   const detailedApplications = useMemo(() => {
@@ -882,14 +818,13 @@ const StudentDashboard = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        setViewMode("ml-workflow");
-                        setMlStep("classification");
+                        setViewMode("recommendations");
                         setShowProfileDropdown(false);
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 transition text-left cursor-pointer"
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-purple-600 hover:bg-purple-50 transition text-left cursor-pointer"
                     >
-                      <Sparkles size={15} className="text-blue-600" />
-                      <span>Vertex ML Workflow</span>
+                      <Compass size={15} className="text-purple-600" />
+                      <span>Job Recommendations</span>
                     </button>
                   </div>
 
@@ -1020,19 +955,19 @@ const StudentDashboard = () => {
               <button
                 type="button"
                 onClick={() => {
-                  setViewMode("ml-workflow");
-                  setMlStep("classification");
+                  setViewMode("recommendations");
                   setShowMobileMenu(false);
                 }}
                 className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-sm font-semibold transition ${
-                  viewMode === "ml-workflow"
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-blue-50 text-blue-700"
+                  viewMode === "recommendations"
+                    ? "bg-purple-600 text-white shadow-sm"
+                    : "text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                <Sparkles size={18} />
-                Vertex ML Workflow
+                <Compass size={18} />
+                AI Job Recommendations
               </button>
+
 
               <Link
                 to="/student/profile"
@@ -1118,22 +1053,21 @@ const StudentDashboard = () => {
             <button
               type="button"
               onClick={() => {
-                setViewMode("ml-workflow");
-                setMlStep("classification");
+                setViewMode("recommendations");
               }}
               className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition ${
-                viewMode === "ml-workflow"
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 hover:from-blue-100 hover:to-indigo-100"
+                viewMode === "recommendations"
+                  ? "bg-purple-600 text-white shadow-sm"
+                  : "text-slate-600 hover:bg-slate-50"
               }`}
             >
-              <Sparkles
+              <Compass
                 size={19}
                 className={
-                  viewMode === "ml-workflow" ? "text-white" : "text-blue-600"
+                  viewMode === "recommendations" ? "text-white" : "text-purple-600"
                 }
               />
-              Vertex ML Workflow
+              AI Job Recommendations
             </button>
 
             <Link
@@ -1145,21 +1079,20 @@ const StudentDashboard = () => {
             </Link>
           </nav>
 
-          <div className="mt-10 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-700 p-4 text-white">
-            <Sparkles size={22} />
-            <h3 className="mt-3 font-bold">AI Career Match</h3>
-            <p className="mt-2 text-xs leading-5 text-blue-100">
-              Run 3-step AI workflow to check suitability, predict salary, and discover recommended jobs.
+          <div className="mt-10 rounded-2xl bg-linear-to-r from-purple-600 to-indigo-700 p-4 text-white">
+            <Compass size={22} />
+            <h3 className="mt-3 font-bold">Job Recommendations</h3>
+            <p className="mt-2 text-xs leading-5 text-purple-100">
+              Discover customized career roles matched to your verified skills and academic profile.
             </p>
             <button
               type="button"
               onClick={() => {
-                setViewMode("ml-workflow");
-                setMlStep("recommendation");
+                setViewMode("recommendations");
               }}
-              className="mt-4 w-full rounded-lg bg-white px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+              className="mt-4 w-full rounded-lg bg-white px-3 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50 cursor-pointer"
             >
-              Job Recommendations
+              View Recommendations
             </button>
           </div>
         </aside>
@@ -1203,13 +1136,12 @@ const StudentDashboard = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setViewMode("ml-workflow");
-                    setMlStep("classification");
+                    setViewMode("recommendations");
                   }}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/15 px-5 py-3 text-sm font-bold text-white backdrop-blur-xs transition hover:bg-white/25"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/15 px-5 py-3 text-sm font-bold text-white backdrop-blur-xs transition hover:bg-white/25 cursor-pointer"
                 >
-                  <Sparkles size={17} />
-                  Run AI Predictions
+                  <Compass size={17} />
+                  Job Recommendations
                 </button>
               </div>
             </div>
@@ -1218,7 +1150,7 @@ const StudentDashboard = () => {
             <div className="absolute -bottom-24 right-28 hidden h-52 w-52 rounded-full bg-white/10 sm:block" />
           </section>
 
-          {viewMode === "jobs" ? (
+          {viewMode === "jobs" && (
             <>
               {/* Statistics */}
           <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -1475,7 +1407,7 @@ const StudentDashboard = () => {
             </div>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              {["All Jobs", "High Match", "Remote", "Internships"].map((filter) => (
+              {["All Jobs", "Remote", "Internships"].map((filter) => (
                 <button
                   key={filter}
                   type="button"
@@ -1605,60 +1537,11 @@ const StudentDashboard = () => {
                         ))}
                       </div>
 
-                      {/* AI Match Score: Displayed ONLY AFTER clicking Apply Now */}
-                      {applied ? (
-                        <div className="mt-5 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-blue-50/60 p-4 transition-all animate-fadeIn">
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-bold text-white uppercase tracking-wider">
-                                  ✓ Applied
-                                </span>
-                                <p className="flex items-center gap-1.5 text-sm font-bold text-slate-800">
-                                  <Sparkles size={15} className="text-amber-500" />
-                                  AI Match Score
-                                </p>
-                              </div>
-                              <p className="mt-1 text-xs text-slate-600">
-                                {job.matchNote || "Generated from your profile & required skills"}
-                              </p>
-                            </div>
-                            <span className="text-2xl font-black text-emerald-700">
-                              {job.fit == null ? "—" : `${job.fit}%`}
-                            </span>
-                          </div>
-
-                          {job.fit != null && (
-                            <div className="mt-3 h-2 overflow-hidden rounded-full bg-emerald-100">
-                              <div
-                                className="h-full rounded-full bg-emerald-600 transition-all duration-700"
-                                style={{
-                                  width: `${Math.max(
-                                    0,
-                                    Math.min(100, job.fit)
-                                  )}%`,
-                                }}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="mt-4 flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-500">
-                          <span className="flex items-center gap-1.5 font-medium text-slate-600">
-                            <Sparkles size={14} className="text-blue-500" />
-                            AI Suitability Analysis
-                          </span>
-                          <span className="text-slate-400">
-                            Click "Apply Now" to calculate AI match
-                          </span>
-                        </div>
-                      )}
-
                       <button
                         type="button"
                         disabled={applied || isApplying}
                         onClick={() => handleApply(job)}
-                        className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                        className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
                           applied
                             ? "cursor-default border border-emerald-300 bg-emerald-50 text-emerald-700 font-bold"
                             : isApplying
@@ -1668,10 +1551,8 @@ const StudentDashboard = () => {
                       >
                         {applied ? (
                           <>
+                            <CheckCircle2 size={17} className="text-emerald-600" />
                             <span>Applied</span>
-                            <span className="text-xs font-medium text-emerald-600">
-                              (AI Score Unlocked)
-                            </span>
                           </>
                         ) : isApplying ? (
                           <>
@@ -1733,7 +1614,7 @@ const StudentDashboard = () => {
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-slate-500">
-                  Real-time status tracking and Vertex AI Match scores of your submitted job applications.
+                  Real-time status tracking of your submitted job applications.
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -1752,7 +1633,7 @@ const StudentDashboard = () => {
                     No applications submitted yet
                   </p>
                   <p className="mt-1 text-sm text-slate-400 max-w-md mx-auto">
-                    Explore available positions in the job board above and click "Apply Now" to calculate your AI Match Score and track your status in real time.
+                    Explore available positions in the job board above and click "Apply Now" to track your application status in real time.
                   </p>
                 </div>
               ) : (
@@ -1801,26 +1682,12 @@ const StudentDashboard = () => {
                             </span>
                           </div>
 
-                          {/* AI Match Score Display */}
-                          <div className="pt-1 flex flex-wrap items-center gap-3">
-                            <div className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/90 px-2.5 py-1 text-xs font-bold text-emerald-800 shadow-xs">
-                              <Sparkles size={13} className="text-amber-500" />
-                              <span>{app.fitScore}% AI Match Score</span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100 sm:w-32">
-                                <div
-                                  className="h-full bg-emerald-600 rounded-full transition-all duration-700"
-                                  style={{
-                                    width: `${Math.min(100, Math.max(0, app.fitScore))}%`,
-                                  }}
-                                />
-                              </div>
-                              <span className="text-[11px] font-medium text-slate-400 hidden sm:inline">
-                                Vertex AI verified
-                              </span>
-                            </div>
+                          {/* Clean Status Note */}
+                          <div className="pt-1 flex items-center gap-2 text-xs text-slate-500">
+                            <span className="inline-flex items-center gap-1 font-medium text-slate-600">
+                              <CheckCircle2 size={13} className="text-emerald-600" />
+                              Application Submitted
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -1851,256 +1718,72 @@ const StudentDashboard = () => {
             </div>
           </section>
         </>
-      ) : (
-        <section className="mt-8 space-y-6">
-          {/* Stepper Card */}
+      )}
+
+      {/* Standalone AI Job Recommendations Section */}
+      {viewMode === "recommendations" && (
+        <section className="space-y-6 animate-fadeIn">
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4">
               <div>
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600">
-                  <Sparkles size={15} />
-                  Vertex AI Career Prediction Suite
+                <div className="flex items-center gap-2">
+                  <Compass size={22} className="text-purple-600" />
+                  <h2 className="text-xl font-bold text-slate-900">
+                    AI Job Recommendations
+                  </h2>
                 </div>
-                <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                  4-Step Complete Career Intelligence Workflow
-                </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Evaluate candidate fit, predict salary range, discover tailored job recommendations, and synthesize overall Final Match.
+                  Enter your skills to discover matching career roles and internships. Click "Apply for this Role" on any recommendation to start your assessment.
                 </p>
               </div>
 
               <button
                 type="button"
                 onClick={() => setViewMode("jobs")}
-                className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
               >
                 <ArrowLeft size={14} />
                 Back to Job Board
               </button>
             </div>
 
-            {/* 4 Step Tabs */}
-            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {/* Step 1: Candidate Fit */}
-              <button
-                type="button"
-                onClick={() => setMlStep("classification")}
-                className={`flex items-center gap-3.5 rounded-xl border p-4 text-left transition ${
-                  mlStep === "classification"
-                    ? "border-blue-600 bg-blue-50/60 shadow-xs ring-1 ring-blue-500/20"
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
-                }`}
-              >
-                <div
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition ${
-                    mlStep === "classification"
-                      ? "bg-blue-600 text-white shadow-xs"
-                      : "bg-blue-100 text-blue-700"
-                  }`}
-                >
-                  <BrainCircuit size={22} />
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    Step 1
-                  </p>
-                  <p className="text-sm font-bold text-slate-900">
-                    Candidate Fit
-                  </p>
-                  <p className="text-xs text-slate-500">Suitability Check</p>
-                </div>
-              </button>
-
-              {/* Step 2: Salary Prediction */}
-              <button
-                type="button"
-                onClick={() => setMlStep("regression")}
-                className={`flex items-center gap-3.5 rounded-xl border p-4 text-left transition ${
-                  mlStep === "regression"
-                    ? "border-emerald-600 bg-emerald-50/60 shadow-xs ring-1 ring-emerald-500/20"
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
-                }`}
-              >
-                <div
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition ${
-                    mlStep === "regression"
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : "bg-emerald-100 text-emerald-700"
-                  }`}
-                >
-                  <TrendingUp size={22} />
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    Step 2
-                  </p>
-                  <p className="text-sm font-bold text-slate-900">
-                    Salary Prediction
-                  </p>
-                  <p className="text-xs text-slate-500">Expected CTC Range</p>
-                </div>
-              </button>
-
-              {/* Step 3: Job Recommendation */}
-              <button
-                type="button"
-                onClick={() => setMlStep("recommendation")}
-                className={`flex items-center gap-3.5 rounded-xl border p-4 text-left transition ${
-                  mlStep === "recommendation"
-                    ? "border-purple-600 bg-purple-50/60 shadow-xs ring-1 ring-purple-500/20"
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
-                }`}
-              >
-                <div
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition ${
-                    mlStep === "recommendation"
-                      ? "bg-purple-600 text-white shadow-xs"
-                      : "bg-purple-100 text-purple-700"
-                  }`}
-                >
-                  <Compass size={22} />
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    Step 3
-                  </p>
-                  <p className="text-sm font-bold text-slate-900">
-                    Job Recommendation
-                  </p>
-                  <p className="text-xs text-slate-500">Skillset Matching</p>
-                </div>
-              </button>
-
-              {/* Step 4: Final Match */}
-              <button
-                type="button"
-                onClick={() => setMlStep("final-match")}
-                className={`flex items-center gap-3.5 rounded-xl border p-4 text-left transition ${
-                  mlStep === "final-match"
-                    ? "border-cyan-600 bg-cyan-50/60 shadow-xs ring-1 ring-cyan-500/20"
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
-                }`}
-              >
-                <div
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition ${
-                    mlStep === "final-match"
-                      ? "bg-cyan-600 text-white shadow-xs"
-                      : "bg-cyan-100 text-cyan-700"
-                  }`}
-                >
-                  <ShieldCheck size={22} />
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    Step 4
-                  </p>
-                  <p className="text-sm font-bold text-slate-900">
-                    Final Match
-                  </p>
-                  <p className="text-xs text-slate-500">Overall Synthesis</p>
-                </div>
-              </button>
+            <div className="mt-6">
+              <RecommendationView
+                initialSkills={studentSkills.join(", ")}
+                onApplyJob={(recJob) => handleApply(recJob)}
+              />
             </div>
           </div>
-
-          {/* Active Step Content */}
-          <div className="space-y-6">
-            {mlStep === "classification" && (
-              <div>
-                <ClassificationView />
-                <div className="mt-6 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setMlStep("regression")}
-                    className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-blue-600/20 hover:bg-blue-700 transition"
-                  >
-                    Proceed to Step 2: Salary Prediction
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {mlStep === "regression" && (
-              <div>
-                <RegressionView />
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <button
-                    type="button"
-                    onClick={() => setMlStep("classification")}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50"
-                  >
-                    <ArrowLeft size={16} />
-                    Back to Candidate Fit
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setMlStep("recommendation")}
-                    className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-purple-600/20 hover:bg-purple-700 transition"
-                  >
-                    Proceed to Step 3: Job Recommendation
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {mlStep === "recommendation" && (
-              <div>
-                <RecommendationView
-                  initialSkills={studentSkills.join(", ")}
-                />
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <button
-                    type="button"
-                    onClick={() => setMlStep("regression")}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50"
-                  >
-                    <ArrowLeft size={16} />
-                    Back to Salary Prediction
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setMlStep("final-match")}
-                    className="inline-flex items-center gap-2 rounded-xl bg-cyan-700 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-cyan-700/20 hover:bg-cyan-800 transition"
-                  >
-                    Proceed to Step 4: Final Match
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {mlStep === "final-match" && (
-              <div>
-                <FinalMatchView
-                  initialCandidateSkills={studentSkills.join(", ")}
-                />
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <button
-                    type="button"
-                    onClick={() => setMlStep("recommendation")}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50"
-                  >
-                    <ArrowLeft size={16} />
-                    Back to Job Recommendation
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setViewMode("jobs")}
-                    className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-blue-600/20 hover:bg-blue-700 transition"
-                  >
-                    Browse All Job Openings
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
         </section>
+      )}
+
+      {/* Guided Job Application Flow Modal */}
+      {applicationModalJob && (
+        <JobApplicationFlowModal
+          job={applicationModalJob}
+          studentProfile={profile}
+          onClose={() => setApplicationModalJob(null)}
+          onSuccess={(createdApp) => {
+            const newApp = {
+              ...createdApp,
+              job: applicationModalJob,
+              jobId: applicationModalJob._id || applicationModalJob.id,
+              role: applicationModalJob.role || applicationModalJob.title,
+              company: applicationModalJob.company,
+              fit: createdApp.fitScore || 85,
+              status: createdApp.status || "pending",
+              appliedOn: new Date().toLocaleDateString("en-IN"),
+              createdAt: createdApp.createdAt || new Date().toISOString(),
+            };
+            const updated = [newApp, ...applications];
+            setApplications(updated);
+            localStorage.setItem("studentApplications", JSON.stringify(updated));
+            setApplyNotification({
+              type: "success",
+              message: `Application sent to recruiter for ${newApp.role} at ${newApp.company}!`,
+            });
+          }}
+        />
       )}
 
       <footer className="py-8 text-center text-xs text-slate-400">
