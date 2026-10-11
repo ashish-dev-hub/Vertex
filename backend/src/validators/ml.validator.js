@@ -144,29 +144,46 @@ const validateFinalMatchInput = (req, res, next) => {
         });
     }
 
-    const arrayOrStringFields = [
-        "candidate_skills",
-        "student_certifications",
-        "student_interests"
-    ];
+    const invalidFlexibleFields = [];
 
-    const invalidArrayOrStringFields = arrayOrStringFields.filter((field) => {
-        const value = data[field];
+    // candidate_skills: string or array of strings
+    if (data.candidate_skills !== undefined && data.candidate_skills !== null) {
+        const val = data.candidate_skills;
+        const isValid = typeof val === "string" || (Array.isArray(val) && val.every((item) => typeof item === "string"));
+        if (!isValid) {
+            invalidFlexibleFields.push("candidate_skills");
+        }
+    }
 
-        return !(
-            typeof value === "string" ||
-            (
-                Array.isArray(value) &&
-                value.every((item) => typeof item === "string")
-            )
-        );
-    });
+    // student_certifications: number (>= 0), string, or array of strings/numbers
+    if (data.student_certifications !== undefined && data.student_certifications !== null) {
+        const val = data.student_certifications;
+        const isValid =
+            (typeof val === "number" && Number.isFinite(val) && val >= 0) ||
+            typeof val === "string" ||
+            (Array.isArray(val) && val.every((item) => typeof item === "string" || typeof item === "number"));
+        if (!isValid) {
+            invalidFlexibleFields.push("student_certifications");
+        }
+    }
 
-    if (invalidArrayOrStringFields.length > 0) {
+    // student_interests: string, number, or array of strings/numbers
+    if (data.student_interests !== undefined && data.student_interests !== null) {
+        const val = data.student_interests;
+        const isValid =
+            typeof val === "string" ||
+            (typeof val === "number" && Number.isFinite(val) && val >= 0) ||
+            (Array.isArray(val) && val.every((item) => typeof item === "string" || typeof item === "number"));
+        if (!isValid) {
+            invalidFlexibleFields.push("student_interests");
+        }
+    }
+
+    if (invalidFlexibleFields.length > 0) {
         return res.status(400).json({
             success: false,
-            message: "These fields must be strings or arrays of strings",
-            invalidFields: invalidArrayOrStringFields
+            message: "These fields have invalid types or formats",
+            invalidFields: invalidFlexibleFields
         });
     }
 

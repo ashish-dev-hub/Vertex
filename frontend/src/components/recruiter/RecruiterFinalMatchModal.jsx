@@ -165,19 +165,21 @@ const RecruiterFinalMatchModal = ({
       student_year_of_study: Math.max(0, parseInt(formData.student_year_of_study, 10) || 1),
       student_cgpa: Math.max(0.1, parseFloat(formData.student_cgpa) || 8.0),
       student_num_projects: Math.max(0, parseInt(formData.student_num_projects, 10) || 0),
-      student_certifications: Number(formData.student_certifications) || 0,
+      student_certifications: typeof formData.student_certifications === "number"
+        ? formData.student_certifications
+        : (!isNaN(Number(formData.student_certifications)) ? Number(formData.student_certifications) : (String(formData.student_certifications || "").trim() || 0)),
       student_internships: Math.max(0, parseInt(formData.student_internships, 10) || 0),
       student_github_repos: Math.max(0, parseInt(formData.student_github_repos, 10) || 0),
       student_hackathons_participated: Math.max(0, parseInt(formData.student_hackathons_participated, 10) || 0),
       student_coding_platform_rating: Math.max(0, parseInt(formData.student_coding_platform_rating, 10) || 0),
       student_experience_level: formData.student_experience_level || "Unknown",
       student_interests: String(formData.student_interests || "Unknown").trim(),
-      job_title: formData.job_title,
+      job_title: formData.job_title || "Data Science Intern",
       required_experience: Math.max(0, parseInt(formData.required_experience, 10) || 0),
       job_location: formData.job_location || "Unknown",
       work_mode: formData.work_mode || "Unknown",
       company_size: formData.company_size || "Unknown",
-      industry: formData.industry || "Unknown",
+      industry: formData.industry || "Product / SaaS",
       job_duration_months: Math.max(1, parseInt(formData.job_duration_months, 10) || 6)
     };
 
@@ -199,15 +201,16 @@ const RecruiterFinalMatchModal = ({
       const response = await getFinalMatch(payload);
       const data = extractData(response);
       setResult(data);
+      setError("");
     } catch (err) {
       console.warn("Final Match evaluation error:", err);
       const parsed = parseApiError(err);
-      setError(parsed?.message || "Failed to calculate final match. Showing synthesis fallback.");
+      setError(parsed?.details || parsed?.message || "Failed to calculate final match. Showing synthesis fallback.");
 
       // Reliable synthesis fallback per PDF response schema
       setResult({
         candidate_id: null,
-        job_title: formData.job_title,
+        job_title: formData.job_title || "Data Science Intern",
         final_match: 0.605,
         final_match_percentage: 60.5,
         match_label: "Good match",

@@ -15,6 +15,8 @@ const app = express();
 
 const allowedOrigins = [
     "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
     "http://localhost:3000",
     "https://frontend-three-alpha-c5u2r52o9u.vercel.app",
     process.env.CORS_ORIGIN,
@@ -26,7 +28,7 @@ app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
         const normalizedOrigin = origin.replace(/\/$/, "");
-        if (allowedOrigins.includes(normalizedOrigin)) {
+        if (allowedOrigins.includes(normalizedOrigin) || /^http:\/\/localhost:\d+$/.test(normalizedOrigin)) {
             return callback(null, true);
         }
         return callback(new Error("Not allowed by CORS: " + origin));
