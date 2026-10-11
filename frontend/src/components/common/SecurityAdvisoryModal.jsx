@@ -32,7 +32,7 @@ const SecurityAdvisoryModal = ({ isOpen, onClose, onContinue, email }) => {
 
         {/* Header Illustration */}
         <div className="relative mb-6 flex items-center gap-4">
-          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-amber-200 bg-gradient from-amber-50 to-orange-50 shadow-md shadow-amber-500/10">
+          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-amber-200 bg-amber-50 bg-gradient-to-r from-amber-50 to-orange-50 shadow-md shadow-amber-500/10">
             <ShieldAlert size={32} className="text-amber-600 animate-pulse" />
             <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-white shadow-xs">
               <AlertTriangle size={13} />
@@ -85,7 +85,7 @@ const SecurityAdvisoryModal = ({ isOpen, onClose, onContinue, email }) => {
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:w-auto rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition"
+            className="w-full sm:w-auto rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition cursor-pointer shadow-xs"
           >
             I'll Change It Later
           </button>
@@ -93,7 +93,7 @@ const SecurityAdvisoryModal = ({ isOpen, onClose, onContinue, email }) => {
           <button
             type="button"
             onClick={onContinue}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-gradient from-blue-600 to-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/25 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transition"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-blue-600 bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/30 hover:from-blue-700 hover:to-indigo-700 transition cursor-pointer active:scale-[0.98]"
           >
             <span>Proceed to Dashboard</span>
             <ArrowRight size={16} />

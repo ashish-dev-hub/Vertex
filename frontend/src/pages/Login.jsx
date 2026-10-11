@@ -125,7 +125,7 @@ const Login = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient from-blue-50 via-indigo-50 to-purple-100 px-4 py-8 sm:px-6 lg:px-10">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 px-4 py-8 sm:px-6 lg:px-10">
 
       {/* Background decoration */}
       <div className="pointer-events-none absolute -left-32 top-10 h-80 w-80 rounded-full bg-blue-200/40 blur-3xl" />
@@ -196,8 +196,8 @@ const Login = () => {
             className="absolute inset-0 h-full w-full object-cover"
           />
 
-          <div className="absolute inset-0 bg-gradient from-blue-900/95 via-blue-800/85 to-blue-700/70" />
-          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient from-blue-950/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-blue-900/95 via-blue-800/85 to-blue-700/70" />
+          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-blue-950/80 to-transparent" />
 
           <div className="absolute -left-32 -top-32 h-80 w-80 rounded-full border border-white/10" />
           <div className="absolute -right-32 top-20 h-96 w-96 rounded-full border border-white/10" />
@@ -406,7 +406,7 @@ const Login = () => {
                 type="button"
                 onClick={handleLogin}
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient from-sky-500  to-blue-600 px-5 py-3.5 text-sm font-bold text-blue-700 shadow-lg shadow-blue-200 transition duration-200 hover:from-sky-600 hover:to-blue-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition duration-200 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
                   "Logging in..."
