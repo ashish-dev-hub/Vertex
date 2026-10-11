@@ -127,15 +127,15 @@ const Login = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 px-3 py-6 sm:px-6 lg:px-10 flex items-center justify-center">
+    <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 px-3 py-6 sm:px-6 lg:px-10 flex flex-col items-center justify-center">
 
       {/* Background decoration */}
       <div className="pointer-events-none absolute -left-32 top-10 h-80 w-80 rounded-full bg-blue-200/40 blur-3xl" />
       <div className="pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-purple-300/40 blur-3xl" />
-      <div className="pointer-events-none absolute left-[35%] top- -100px h-72 w-72 rounded-full bg-indigo-200/40 blur-3xl" />
+      <div className="pointer-events-none absolute left-[35%] -top-24 h-72 w-72 rounded-full bg-indigo-200/40 blur-3xl" />
 
-      <div className="pointer-events-none absolute left- -80px top-[35%] h-72 w-72 rounded-full border-2 border-blue-200/50" />
-      <div className="pointer-events-none absolute right- -100px top-[15%] h-80 w-80 rounded-full border-2 border-purple-200/50" />
+      <div className="pointer-events-none absolute -left-20 top-[35%] h-72 w-72 rounded-full border-2 border-blue-200/50" />
+      <div className="pointer-events-none absolute -right-24 top-[15%] h-80 w-80 rounded-full border-2 border-purple-200/50" />
 
       {/* Software Engineer floating card */}
       <div className="absolute left-6 top-10 z-20 hidden rotate-[-5deg] items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-5 py-3 shadow-xl backdrop-blur-md lg:flex">
@@ -187,10 +187,10 @@ const Login = () => {
       </div>
 
       {/* Main card */}
-      <div className="relative z-10 mx-auto flex flex-col min-h-650px w-full max-w-6xl overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-[0_25px_80px_rgba(37,99,235,0.18)] lg:flex-row">
+      <div className="relative z-10 w-full max-w-6xl overflow-hidden rounded-2xl sm:rounded-[28px] border border-white/80 bg-white shadow-[0_25px_80px_rgba(37,99,235,0.18)] flex flex-col lg:flex-row">
 
         {/* LEFT SIDE */}
-        <div className="relative hidden min-h-600px w-full overflow-hidden bg-blue-700 lg:flex lg:w-[55%]">
+        <div className="relative hidden min-h-[600px] w-full overflow-hidden bg-blue-700 lg:flex lg:w-[55%]">
 
           <img
             src="https://plus.unsplash.com/premium_photo-1713296255442-e9338f42aad8?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2UlMjBncmFkdWF0aW9uJTIwY2FwJTIwdWRhdGElMjBodWFhJTIwbGFka2FhfGVufDB8fDB8fHww"

@@ -93,8 +93,8 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center px-3 py-6 sm:p-4">
-      <div className="w-full max-w-6xl min-h-650px overflow-hidden rounded-3xl bg-white shadow-2xl flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center px-3 py-6 sm:p-4">
+      <div className="w-full max-w-6xl overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-2xl flex flex-col lg:flex-row">
 
         {/* LEFT SIDE - SIGNUP FORM */}
         <div className="w-full lg:w-[45%] flex items-center justify-center bg-white px-4 py-8 sm:px-10 lg:px-12">
