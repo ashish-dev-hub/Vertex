@@ -1078,23 +1078,6 @@ const StudentDashboard = () => {
               My Profile
             </Link>
           </nav>
-
-          <div className="mt-10 rounded-2xl bg-linear-to-r from-purple-600 to-indigo-700 p-4 text-white">
-            <Compass size={22} />
-            <h3 className="mt-3 font-bold">Job Recommendations</h3>
-            <p className="mt-2 text-xs leading-5 text-purple-100">
-              Discover customized career roles matched to your verified skills and academic profile.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode("recommendations");
-              }}
-              className="mt-4 w-full rounded-lg bg-white px-3 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50 cursor-pointer"
-            >
-              View Recommendations
-            </button>
-          </div>
         </aside>
 
         {/* Main content */}
