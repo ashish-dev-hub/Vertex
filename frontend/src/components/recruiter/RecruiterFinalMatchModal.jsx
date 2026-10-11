@@ -266,31 +266,48 @@ const RecruiterFinalMatchModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
       <div className="relative w-full max-w-5xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[94vh]">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 bg-linear-to-r from-cyan-50/70 via-blue-50/50 to-white px-5 sm:px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-700 text-white shadow-xs">
-              <ShieldCheck size={22} />
+        <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-cyan-50/70 via-blue-50/50 to-white px-4 sm:px-6 py-3.5 sm:py-4">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-cyan-700 text-white shadow-xs shrink-0">
+              <ShieldCheck size={20} className="sm:size-[22px]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-slate-900">
-                  Final Match Synthesis Evaluation
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
+                  Final Match Synthesis
                 </h2>
-                <span className="rounded-full bg-cyan-100 px-2.5 py-0.5 text-xs font-bold text-cyan-800">
+                <span className="rounded-full bg-cyan-100 px-2.5 py-0.5 text-[11px] font-bold text-cyan-800">
                   Recruiter Tool
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
-                Evaluating candidate <strong>{candidateName}</strong> for <strong>{formData.job_title}</strong>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Candidate <strong>{candidateName}</strong> · <strong>{formData.job_title}</strong>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={handleLoadSampleData}
+              title="Load example dataset from PDF spec"
+              className="inline-flex sm:hidden p-1.5 rounded-lg border border-slate-200 bg-white text-cyan-700 hover:bg-slate-50 transition cursor-pointer"
+            >
+              <BookOpen size={15} />
+            </button>
+            <button
+              type="button"
+              onClick={handleResetToApplicant}
+              title="Reset to applicant's submitted values"
+              className="inline-flex sm:hidden p-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition cursor-pointer"
+            >
+              <RotateCcw size={15} />
+            </button>
+
             <button
               type="button"
               onClick={handleLoadSampleData}
@@ -320,11 +337,11 @@ const RecruiterFinalMatchModal = ({
         </div>
 
         {/* Content Body: Split View (Inputs on left, Evaluation results on right) */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div className="flex-1 overflow-y-auto p-3.5 sm:p-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             {/* Left Column: Comprehensive Input Fields per PDF Specification */}
-            <div className="lg:col-span-7 space-y-4 max-h-[74vh] overflow-y-auto pr-1">
+            <div className="lg:col-span-7 space-y-4 lg:max-h-[74vh] lg:overflow-y-auto pr-0 lg:pr-1">
               
               {/* Card 1: Applicant Credentials & Profile */}
               <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">

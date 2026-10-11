@@ -189,7 +189,7 @@ const RecommendationView = ({ initialSkills, onApplyJob }) => {
           </div>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+        <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <span className="text-xs text-slate-500">
             Matched across available internship profiles
           </span>
@@ -197,7 +197,7 @@ const RecommendationView = ({ initialSkills, onApplyJob }) => {
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-purple-600/20 hover:bg-purple-700 disabled:opacity-50 transition"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-purple-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-purple-600/20 hover:bg-purple-700 disabled:opacity-50 transition"
           >
             {loading ? (
               <>
@@ -362,24 +362,7 @@ const RecommendationView = ({ initialSkills, onApplyJob }) => {
                     </div>
                   </div>
 
-                  {onApplyJob && (
-                    <button
-                      type="button"
-                      onClick={() => onApplyJob({
-                        role: item.job_title,
-                        title: item.job_title,
-                        skills: item.required_skills,
-                        similarityScore: item.similarity_score,
-                        company: "Vertex Partner Company",
-                        location: "Delhi NCR / Remote",
-                        workMode: "hybrid"
-                      })}
-                      className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl bg-purple-600 px-3 py-2 text-xs font-bold text-white shadow-xs hover:bg-purple-700 transition cursor-pointer"
-                    >
-                      <span>Apply for this Role</span>
-                      <ArrowUpRight size={14} />
-                    </button>
-                  )}
+
 
                   <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between text-xs text-slate-400">
                     <span className="inline-flex items-center gap-1">

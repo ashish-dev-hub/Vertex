@@ -27,6 +27,7 @@ import {
   Award,
   Star,
   ShieldCheck,
+  Menu,
 } from "lucide-react";
 
 import {
@@ -64,6 +65,7 @@ const RecruiterDashboard = () => {
   const [applicantStatusFilter, setApplicantStatusFilter] = useState("all");
   const [updatingStatusId, setUpdatingStatusId] = useState(null);
   const [evaluatingApplicant, setEvaluatingApplicant] = useState(null);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -449,19 +451,31 @@ const RecruiterDashboard = () => {
       {/* Navbar */}
       <nav className="sticky top-0 z-40 border-b border-slate-200 bg-white">
         <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
-              <BriefcaseBusiness
-                size={20}
-                className="text-white"
-              />
-            </div>
+          <div className="flex items-center gap-3">
+            {/* Mobile Hamburger Menu Toggle */}
+            <button
+              type="button"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              aria-label="Toggle navigation menu"
+              className="rounded-xl p-2 text-slate-600 hover:bg-slate-100 md:hidden transition cursor-pointer"
+            >
+              {showMobileMenu ? <X size={22} /> : <Menu size={22} />}
+            </button>
 
-            <span className="text-xl font-bold text-slate-900">
-              InternMatch{" "}
-              <span className="text-blue-600">AI</span>
-            </span>
-          </Link>
+            <Link to="/" className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
+                <BriefcaseBusiness
+                  size={20}
+                  className="text-white"
+                />
+              </div>
+
+              <span className="text-xl font-bold text-slate-900">
+                InternMatch{" "}
+                <span className="text-blue-600">AI</span>
+              </span>
+            </Link>
+          </div>
 
           <div className="flex items-center gap-3">
             <div className="hidden text-right sm:block">
@@ -482,6 +496,122 @@ const RecruiterDashboard = () => {
           </div>
         </div>
       </nav>
+
+      {/* Mobile Drawer Navigation for Recruiter */}
+      {showMobileMenu && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs animate-fadeIn"
+            onClick={() => setShowMobileMenu(false)}
+          />
+
+          {/* Drawer content */}
+          <div className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-white p-5 shadow-2xl flex flex-col z-50 animate-fadeIn">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white font-bold">
+                  <BriefcaseBusiness size={18} />
+                </div>
+                <span className="font-bold text-slate-900">InternMatch AI</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMobileMenu(false)}
+                className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Recruiter Navigation Links */}
+            <div className="mt-4 flex flex-col space-y-1 overflow-y-auto">
+              <a
+                href="#dashboard"
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center gap-3 rounded-lg bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-600"
+              >
+                <LayoutDashboard size={19} />
+                Dashboard
+              </a>
+
+              <Link
+                to="/recruiter/post-job"
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-blue-600"
+              >
+                <PlusCircle size={19} />
+                Post Job
+              </Link>
+
+              <a
+                href="#jobs"
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-blue-600"
+              >
+                <BriefcaseBusiness size={19} />
+                My Jobs
+              </a>
+
+              <a
+                href="#applicants"
+                onClick={() => {
+                  setApplicantStatusFilter("all");
+                  setShowMobileMenu(false);
+                }}
+                className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-blue-600"
+              >
+                <Users size={19} />
+                Applicants
+                {totalApplicants > 0 && (
+                  <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600">
+                    {totalApplicants}
+                  </span>
+                )}
+              </a>
+
+              <a
+                href="#shortlisted"
+                onClick={() => {
+                  setApplicantStatusFilter("shortlisted");
+                  setShowMobileMenu(false);
+                }}
+                className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-blue-600"
+              >
+                <Award size={19} className="text-amber-500" />
+                Shortlisted Students
+                {shortlistedCount > 0 && (
+                  <span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">
+                    {shortlistedCount}
+                  </span>
+                )}
+              </a>
+
+              <Link
+                to="/ml/recruiter"
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center gap-3 rounded-lg bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+              >
+                <Sparkles size={19} className="text-blue-600" />
+                Vertex ML Models
+              </Link>
+            </div>
+
+            <div className="mt-auto pt-4 border-t border-slate-100">
+              <button
+                onClick={() => {
+                  setShowMobileMenu(false);
+                  handleLogout();
+                }}
+                className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-red-500 transition hover:bg-red-50 cursor-pointer"
+              >
+                <LogOut size={19} />
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex min-h-[calc(100vh-64px)] items-start">
         {/* Sticky Fixed Sidebar */}
@@ -1017,10 +1147,6 @@ const RecruiterDashboard = () => {
                   <h3 className="mt-4 text-lg font-semibold text-slate-800">
                     No jobs posted yet
                   </h3>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Agar jobs pehle se post ki hain, Refresh
-                    dabao aur backend GET /api/jobs response check karo.
-                  </p>
                   <Link
                     to="/recruiter/post-job"
                     className="mt-5 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"

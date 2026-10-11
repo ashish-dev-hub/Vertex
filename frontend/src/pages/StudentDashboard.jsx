@@ -1733,7 +1733,7 @@ const StudentDashboard = () => {
                   </h2>
                 </div>
                 <p className="mt-1 text-sm text-slate-500">
-                  Enter your skills to discover matching career roles and internships. Click "Apply for this Role" on any recommendation to start your assessment.
+                  Enter your skills to discover matching career roles and internships based on mathematical vector similarity.
                 </p>
               </div>
 
@@ -1750,7 +1750,6 @@ const StudentDashboard = () => {
             <div className="mt-6">
               <RecommendationView
                 initialSkills={studentSkills.join(", ")}
-                onApplyJob={(recJob) => handleApply(recJob)}
               />
             </div>
           </div>

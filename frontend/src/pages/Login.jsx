@@ -127,7 +127,7 @@ const Login = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 px-4 py-8 sm:px-6 lg:px-10">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 px-3 py-6 sm:px-6 lg:px-10 flex items-center justify-center">
 
       {/* Background decoration */}
       <div className="pointer-events-none absolute -left-32 top-10 h-80 w-80 rounded-full bg-blue-200/40 blur-3xl" />
@@ -187,10 +187,10 @@ const Login = () => {
       </div>
 
       {/* Main card */}
-      <div className="relative z-10 mx-auto flex min-h-650px w-full max-w-6xl overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-[0_25px_80px_rgba(37,99,235,0.18)] lg:flex-row">
+      <div className="relative z-10 mx-auto flex flex-col min-h-650px w-full max-w-6xl overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-[0_25px_80px_rgba(37,99,235,0.18)] lg:flex-row">
 
         {/* LEFT SIDE */}
-        <div className="relative flex min-h-600px w-full overflow-hidden bg-blue-700 lg:w-[55%]">
+        <div className="relative hidden min-h-600px w-full overflow-hidden bg-blue-700 lg:flex lg:w-[55%]">
 
           <img
             src="https://plus.unsplash.com/premium_photo-1713296255442-e9338f42aad8?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2UlMjBncmFkdWF0aW9uJTIwY2FwJTIwdWRhdGElMjBodWFhJTIwbGFka2FhfGVufDB8fDB8fHww"
@@ -296,12 +296,22 @@ const Login = () => {
         </div>
 
         {/* RIGHT SIDE - LOGIN */}
-        <div className="flex w-full items-center justify-center bg-white px-6 py-10 sm:px-10 lg:w-[45%] lg:px-12">
+        <div className="flex w-full items-center justify-center bg-white px-5 py-8 sm:px-10 lg:w-[45%] lg:px-12">
 
           <div className="w-full max-w-md">
 
+            {/* Mobile Brand Header */}
+            <div className="mb-6 flex items-center gap-3 lg:hidden">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-sm">
+                <BriefcaseBusiness size={20} className="text-white" />
+              </div>
+              <span className="text-lg font-bold text-slate-900">
+                InternMatch <span className="text-blue-600">AI</span>
+              </span>
+            </div>
+
             <div className="mb-8">
-              <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+              <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
                 Welcome Back
               </h1>
 

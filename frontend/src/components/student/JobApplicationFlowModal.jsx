@@ -92,6 +92,7 @@ const JobApplicationFlowModal = ({
     student_coding_platform_rating: 1200,
     student_interests: candidateSkills || "AI, Machine Learning",
     skill_coverage: 0.8,
+    skill_overlap: 2,
 
     // Optional Fields from PDF
     student_experience_level: "Beginner",
@@ -173,6 +174,29 @@ const JobApplicationFlowModal = ({
     setLoading(true);
     setStepError("");
     try {
+      if (
+        formData.skill_coverage === "" ||
+        formData.skill_coverage === null ||
+        formData.skill_coverage === undefined ||
+        isNaN(Number(formData.skill_coverage)) ||
+        Number(formData.skill_coverage) < 0
+      ) {
+        setStepError("Skill coverage is required (≥ 0)");
+        setLoading(false);
+        return;
+      }
+      if (
+        formData.skill_overlap === "" ||
+        formData.skill_overlap === null ||
+        formData.skill_overlap === undefined ||
+        isNaN(Number(formData.skill_overlap)) ||
+        Number(formData.skill_overlap) < 0
+      ) {
+        setStepError("Skill overlap is required (≥ 0)");
+        setLoading(false);
+        return;
+      }
+
       const payload = {
         education: formData.education,
         years_experience: Number(formData.years_experience || 0),
@@ -191,6 +215,7 @@ const JobApplicationFlowModal = ({
         student_hackathons_participated: Number(formData.student_hackathons_participated || 0),
         industry: formData.industry,
         skill_coverage: Number(formData.skill_coverage ?? 0.8),
+        skill_overlap: Number(formData.skill_overlap ?? 2),
         student_experience_level: formData.student_experience_level || "Beginner",
         student_career_label: formData.student_career_label || "Candidate",
       };
@@ -252,20 +277,20 @@ const JobApplicationFlowModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-      <div className="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+      <div className="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[94vh]">
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-blue-50/60 via-indigo-50/40 to-white px-6 py-4">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-blue-50/60 via-indigo-50/40 to-white px-4 py-3.5 sm:px-6 sm:py-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700">
                 <Sparkles size={12} />
-                Candidate Application Assessment
+                Candidate Assessment
               </span>
               <span className="text-xs text-slate-400">Step {currentStep} of 3</span>
             </div>
-            <h2 className="mt-1 text-lg font-bold text-slate-900">
+            <h2 className="mt-1 text-base sm:text-lg font-bold text-slate-900">
               Applying for {formData.job_title}
             </h2>
             <p className="text-xs text-slate-500">{companyName} · {formData.job_location}</p>
@@ -292,7 +317,8 @@ const JobApplicationFlowModal = ({
             }`}
           >
             <BrainCircuit size={15} />
-            <span>1. Candidate Fit Check</span>
+            <span className="hidden sm:inline">1. Candidate Fit Check</span>
+            <span className="sm:hidden">1. Fit</span>
           </button>
 
           <button
@@ -308,7 +334,8 @@ const JobApplicationFlowModal = ({
             }`}
           >
             <TrendingUp size={15} />
-            <span>2. Salary Prediction</span>
+            <span className="hidden sm:inline">2. Salary Prediction</span>
+            <span className="sm:hidden">2. Salary</span>
           </button>
 
           <button
@@ -324,12 +351,13 @@ const JobApplicationFlowModal = ({
             }`}
           >
             <Send size={15} />
-            <span>3. Confirm Application</span>
+            <span className="hidden sm:inline">3. Confirm Application</span>
+            <span className="sm:hidden">3. Confirm</span>
           </button>
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
           {stepError && (
             <div className="rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-700 flex items-center gap-2">
               <AlertCircle size={15} />
@@ -362,35 +390,35 @@ const JobApplicationFlowModal = ({
               </div>
 
               {/* Sub-tabs for neat organization */}
-              <div className="flex items-center gap-2 border-b border-slate-200">
+              <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto no-scrollbar pb-0.5">
                 <button
                   type="button"
                   onClick={() => setSubTab("candidate")}
-                  className={`flex items-center gap-1.5 pb-2.5 text-xs font-bold transition border-b-2 ${
+                  className={`flex shrink-0 items-center gap-1.5 pb-2.5 text-xs font-bold transition border-b-2 whitespace-nowrap ${
                     subTab === "candidate"
                       ? "border-blue-600 text-blue-600"
                       : "border-transparent text-slate-400 hover:text-slate-700"
                   }`}
                 >
                   <User size={14} />
-                  Candidate Profile Credentials
+                  Candidate Profile
                 </button>
                 <button
                   type="button"
                   onClick={() => setSubTab("job")}
-                  className={`flex items-center gap-1.5 pb-2.5 text-xs font-bold transition border-b-2 ${
+                  className={`flex shrink-0 items-center gap-1.5 pb-2.5 text-xs font-bold transition border-b-2 whitespace-nowrap ${
                     subTab === "job"
                       ? "border-blue-600 text-blue-600"
                       : "border-transparent text-slate-400 hover:text-slate-700"
                   }`}
                 >
                   <Briefcase size={14} />
-                  Target Role & Parameters
+                  Target Role
                 </button>
                 <button
                   type="button"
                   onClick={() => setSubTab("optional")}
-                  className={`flex items-center gap-1.5 pb-2.5 text-xs font-bold transition border-b-2 ${
+                  className={`flex shrink-0 items-center gap-1.5 pb-2.5 text-xs font-bold transition border-b-2 whitespace-nowrap ${
                     subTab === "optional"
                       ? "border-blue-600 text-blue-600"
                       : "border-transparent text-slate-400 hover:text-slate-700"
@@ -750,35 +778,35 @@ const JobApplicationFlowModal = ({
               </div>
 
               {/* Sub-tabs for Step 2: Salary Prediction inputs */}
-              <div className="flex items-center gap-2 border-b border-slate-200">
+              <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto no-scrollbar pb-0.5">
                 <button
                   type="button"
                   onClick={() => setSalarySubTab("candidate")}
-                  className={`flex items-center gap-1.5 pb-2.5 text-xs font-bold transition border-b-2 ${
+                  className={`flex shrink-0 items-center gap-1.5 pb-2.5 text-xs font-bold transition border-b-2 whitespace-nowrap ${
                     salarySubTab === "candidate"
                       ? "border-emerald-600 text-emerald-700"
                       : "border-transparent text-slate-400 hover:text-slate-700"
                   }`}
                 >
                   <User size={14} />
-                  Candidate Profile Inputs
+                  Candidate Profile
                 </button>
                 <button
                   type="button"
                   onClick={() => setSalarySubTab("job")}
-                  className={`flex items-center gap-1.5 pb-2.5 text-xs font-bold transition border-b-2 ${
+                  className={`flex shrink-0 items-center gap-1.5 pb-2.5 text-xs font-bold transition border-b-2 whitespace-nowrap ${
                     salarySubTab === "job"
                       ? "border-emerald-600 text-emerald-700"
                       : "border-transparent text-slate-400 hover:text-slate-700"
                   }`}
                 >
                   <Briefcase size={14} />
-                  Target Role Parameters
+                  Target Role
                 </button>
                 <button
                   type="button"
                   onClick={() => setSalarySubTab("optional")}
-                  className={`flex items-center gap-1.5 pb-2.5 text-xs font-bold transition border-b-2 ${
+                  className={`flex shrink-0 items-center gap-1.5 pb-2.5 text-xs font-bold transition border-b-2 whitespace-nowrap ${
                     salarySubTab === "optional"
                       ? "border-emerald-600 text-emerald-700"
                       : "border-transparent text-slate-400 hover:text-slate-700"
@@ -935,6 +963,31 @@ const JobApplicationFlowModal = ({
                     required
                     min={1}
                   />
+
+                  <NumericField
+                    label="Skill Overlap"
+                    name="skill_overlap"
+                    value={formData.skill_overlap}
+                    onChange={handleFieldChange}
+                    required={true}
+                    min={0}
+                    step={1}
+                    placeholder="2"
+                    helperText="Matching skills count (e.g. 2)"
+                  />
+
+                  <NumericField
+                    label="Skill Coverage"
+                    name="skill_coverage"
+                    value={formData.skill_coverage}
+                    onChange={handleFieldChange}
+                    required={true}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    placeholder="0.8"
+                    helperText="Coverage ratio 0.0 to 1.0 (e.g. 0.8)"
+                  />
                 </div>
               )}
 
@@ -958,18 +1011,6 @@ const JobApplicationFlowModal = ({
                       options={DROPDOWN_OPTIONS.industry}
                       onChange={handleFieldChange}
                       required={false}
-                    />
-
-                    <NumericField
-                      label="Skill Coverage"
-                      name="skill_coverage"
-                      value={formData.skill_coverage}
-                      onChange={handleFieldChange}
-                      required={false}
-                      min={0}
-                      max={1}
-                      step={0.05}
-                      helperText="0.0 to 1.0 (e.g. 0.8)"
                     />
 
                     <FormSelect
@@ -1136,8 +1177,30 @@ const JobApplicationFlowModal = ({
               <button
                 type="button"
                 disabled={loading}
-                onClick={() => setCurrentStep(3)}
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-semibold text-white hover:bg-blue-700 transition shadow-xs"
+                onClick={() => {
+                  if (
+                    formData.skill_coverage === "" ||
+                    formData.skill_coverage === null ||
+                    formData.skill_coverage === undefined ||
+                    isNaN(Number(formData.skill_coverage)) ||
+                    Number(formData.skill_coverage) < 0
+                  ) {
+                    setStepError("Skill coverage is required (≥ 0)");
+                    return;
+                  }
+                  if (
+                    formData.skill_overlap === "" ||
+                    formData.skill_overlap === null ||
+                    formData.skill_overlap === undefined ||
+                    isNaN(Number(formData.skill_overlap)) ||
+                    Number(formData.skill_overlap) < 0
+                  ) {
+                    setStepError("Skill overlap is required (≥ 0)");
+                    return;
+                  }
+                  setCurrentStep(3);
+                }}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-semibold text-white hover:bg-blue-700 transition shadow-xs cursor-pointer"
               >
                 <span>Review Application</span>
                 <ArrowRight size={15} />
