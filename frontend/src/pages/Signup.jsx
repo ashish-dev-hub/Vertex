@@ -10,6 +10,7 @@ import {
   UserRound,
   UserPlus,
   ArrowRight,
+  BriefcaseBusiness,
 } from "lucide-react";
 
 import { signup } from "../api/auth";
@@ -92,12 +93,22 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center px-3 py-6 sm:p-4">
       <div className="w-full max-w-6xl min-h-650px overflow-hidden rounded-3xl bg-white shadow-2xl flex flex-col lg:flex-row">
 
         {/* LEFT SIDE - SIGNUP FORM */}
-        <div className="w-full lg:w-[45%] flex items-center justify-center bg-white px-6 py-10 sm:px-10 lg:px-12">
+        <div className="w-full lg:w-[45%] flex items-center justify-center bg-white px-4 py-8 sm:px-10 lg:px-12">
           <div className="w-full max-w-md">
+
+            {/* Mobile Brand Header */}
+            <div className="mb-6 flex items-center gap-2.5 lg:hidden">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-xs">
+                <BriefcaseBusiness size={20} className="text-white" />
+              </div>
+              <span className="text-lg font-bold text-slate-900">
+                InternMatch <span className="text-blue-600">AI</span>
+              </span>
+            </div>
 
             {/* Heading */}
             <div className="mb-7">
@@ -108,7 +119,7 @@ const Signup = () => {
                 />
               </div>
 
-              <h1 className="text-3xl font-bold text-slate-900">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
                 Create Account
               </h1>
 

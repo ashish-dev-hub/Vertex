@@ -450,8 +450,8 @@ const RecruiterDashboard = () => {
     <div className="min-h-screen bg-slate-50">
       {/* Navbar */}
       <nav className="sticky top-0 z-40 border-b border-slate-200 bg-white">
-        <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-3">
+        <div className="flex h-16 items-center justify-between px-3.5 sm:px-6">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             {/* Mobile Hamburger Menu Toggle */}
             <button
               type="button"
@@ -462,15 +462,15 @@ const RecruiterDashboard = () => {
               {showMobileMenu ? <X size={22} /> : <Menu size={22} />}
             </button>
 
-            <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
+            <Link to="/" className="flex items-center gap-2 shrink-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-600">
                 <BriefcaseBusiness
                   size={20}
                   className="text-white"
                 />
               </div>
 
-              <span className="text-xl font-bold text-slate-900">
+              <span className="text-base sm:text-xl font-bold text-slate-900 whitespace-nowrap">
                 InternMatch{" "}
                 <span className="text-blue-600">AI</span>
               </span>

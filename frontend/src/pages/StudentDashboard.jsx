@@ -613,24 +613,24 @@ const StudentDashboard = () => {
     <div className="min-h-screen bg-slate-50 text-slate-800">
       {/* Top navigation */}
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white shadow-xs">
-        <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             {/* Mobile Hamburger Menu Toggle */}
             <button
               type="button"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
               aria-label="Toggle navigation menu"
-              className="rounded-xl p-2 text-slate-600 hover:bg-slate-100 lg:hidden transition"
+              className="rounded-xl p-2 text-slate-600 hover:bg-slate-100 lg:hidden transition cursor-pointer"
             >
               {showMobileMenu ? <X size={22} /> : <Menu size={22} />}
             </button>
 
             {/* Logo */}
-            <Link to="/" className="flex shrink-0 items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-xs">
-                <BriefcaseBusiness size={21} className="text-white" />
+            <Link to="/" className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-blue-600 shadow-xs">
+                <BriefcaseBusiness size={20} className="text-white" />
               </div>
-              <span className="text-lg font-bold text-slate-900 sm:text-xl tracking-tight">
+              <span className="text-base font-bold text-slate-900 sm:text-xl tracking-tight whitespace-nowrap">
                 InternMatch<span className="text-blue-600"> AI</span>
               </span>
             </Link>
