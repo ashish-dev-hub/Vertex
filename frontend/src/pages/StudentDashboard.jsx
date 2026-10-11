@@ -126,15 +126,27 @@ const StudentDashboard = () => {
               job.role ||
               "Untitled Job",
             location: job.location || "Not specified",
+            workMode: job.workMode || "",
+            experience: job.experience || "Fresher",
             stipend:
-              job.stipend != null
-                ? `₹${job.stipend}/month`
+              job.salaryMin != null && job.salaryMax != null
+                ? `₹${Number(job.salaryMin).toLocaleString("en-IN")} – ₹${Number(job.salaryMax).toLocaleString("en-IN")}`
+                : job.salaryMin != null
+                ? `₹${Number(job.salaryMin).toLocaleString("en-IN")}`
+                : job.salaryMax != null
+                ? `Up to ₹${Number(job.salaryMax).toLocaleString("en-IN")}`
+                : job.stipend != null
+                ? typeof job.stipend === "number"
+                  ? `₹${job.stipend.toLocaleString("en-IN")}/month`
+                  : `₹${job.stipend}`
                 : job.salary != null
                 ? typeof job.salary === "number"
-                  ? `₹${job.salary}`
-                  : job.salary
+                  ? `₹${job.salary.toLocaleString("en-IN")}`
+                  : String(job.salary)
                 : "Not specified",
-            duration: job.duration || "Not specified",
+            duration:
+              job.duration ||
+              (job.experience ? `${job.experience}` : (job.workMode || "Not specified")),
             type: job.type || job.jobType || "Job",
             skills: Array.isArray(job.skills)
               ? job.skills
@@ -192,8 +204,11 @@ const StudentDashboard = () => {
         job.role,
         job.company,
         job.location,
+        job.workMode,
+        job.experience,
         ...job.skills,
       ]
+        .filter(Boolean)
         .join(" ")
         .toLowerCase();
 
@@ -202,7 +217,8 @@ const StudentDashboard = () => {
       const matchesFilter =
         activeFilter === "All Jobs" ||
         (activeFilter === "Remote" &&
-          job.location.toLowerCase().includes("remote")) ||
+          (job.workMode?.toLowerCase() === "remote" ||
+            job.location?.toLowerCase().includes("remote"))) ||
         (activeFilter === "High Match" &&
           job.fit !== null &&
           job.fit >= 85);
@@ -647,8 +663,9 @@ const StudentDashboard = () => {
                             <h3 className="mt-1 text-base font-bold text-slate-900">
                               {job.role}
                             </h3>
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs capitalize text-slate-400">
                               {job.type}
+                              {job.workMode ? ` · ${job.workMode}` : ""}
                             </p>
                           </div>
                         </div>
@@ -675,6 +692,12 @@ const StudentDashboard = () => {
                           <MapPin size={15} />
                           {job.location}
                         </span>
+                        {job.workMode && (
+                          <span className="flex items-center gap-1.5 capitalize">
+                            <BriefcaseBusiness size={15} />
+                            {job.workMode}
+                          </span>
+                        )}
                         <span className="flex items-center gap-1.5">
                           <Clock3 size={15} />
                           {job.duration}
