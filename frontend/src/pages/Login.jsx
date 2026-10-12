@@ -91,9 +91,7 @@ const Login = () => {
         password: formData.password,
         role: formData.role,
       });
-
-      console.log("Login response:", response.data);
-      const user = response.data.user;
+      const user = response.data?.user;
       const userRole = user?.role || formData.role;
       localStorage.setItem("userRole", userRole);
       if (user?.name) localStorage.setItem("userName", user.name);

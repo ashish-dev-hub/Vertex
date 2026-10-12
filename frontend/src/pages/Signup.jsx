@@ -71,7 +71,6 @@ const Signup = () => {
         role: formData.role,
       });
 
-      console.log("Signup response:", response.data);
 
       showSuccess("Account created successfully! Redirecting to login...", "Registration Successful");
 
