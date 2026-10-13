@@ -19,10 +19,10 @@ const allowedOrigins = [
     "http://localhost:5175",
     "http://localhost:3000",
     "https://frontend-three-alpha-c5u2r52o9u.vercel.app",
-    process.env.CORS_ORIGIN,
+    ...(process.env.CORS_ORIGIN || "").split(","),
 ]
-    .filter(Boolean)
-    .map((origin) => origin.replace(/\/$/, ""));
+    .map((origin) => origin.trim().replace(/\/$/, ""))
+    .filter(Boolean);
     
 app.use(cors({
     origin: function (origin, callback) {

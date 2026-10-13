@@ -563,6 +563,7 @@ Base URL: `http://localhost:8000` (Docs available at `http://localhost:8000/docs
 ```env
 PORT=5000
 MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/Vertex?retryWrites=true&w=majority
+# Comma-separated frontend origins when more than one deployment needs access
 CORS_ORIGIN=http://localhost:5173
 JWT_SECRET=your_super_secret_jwt_key
 JWT_EXPIRES_IN=7d
