@@ -239,9 +239,6 @@ const RecommendationView = ({ initialSkills, onApplyJob }) => {
             <p className="mt-4 text-sm font-semibold text-slate-700">
               Matching candidate skills with job corpus...
             </p>
-            <p className="mt-1 text-xs text-slate-400">
-              Calling POST /api/ml/recommendation
-            </p>
           </div>
         )}
 

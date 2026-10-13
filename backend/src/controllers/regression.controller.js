@@ -1,6 +1,5 @@
 const {
-    getRegressionResult
-} = require("../services/regression.service");
+    getRegressionResult} = require("../services/regression.service");
 
 const getRegression = async (req, res) => {
     try {

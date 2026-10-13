@@ -79,6 +79,149 @@ export const DROPDOWN_OPTIONS = {
   ]
 };
 
+/**
+ * Intelligently maps an arbitrary job title or role (e.g. "ML engineer", "React Dev", "SDE")
+ * to the exact 8 job title categories supported by the trained ML models.
+ */
+export const matchJobTitle = (value, fallback = "Machine Learning Intern") => {
+  if (!value) return fallback;
+  const str = String(value).trim();
+  const lower = str.toLowerCase();
+
+  // 1. Exact match (case-insensitive)
+  const exact = DROPDOWN_OPTIONS.job_title.find(
+    (opt) => opt.toLowerCase() === lower
+  );
+  if (exact) return exact;
+
+  // 2. Direct inclusion (option includes input, or input includes option)
+  const direct = DROPDOWN_OPTIONS.job_title.find(
+    (opt) => opt.toLowerCase().includes(lower) || lower.includes(opt.toLowerCase())
+  );
+  if (direct) return direct;
+
+  // 3. Domain & Keyword heuristics with regex word boundaries
+  // Machine Learning / ML (prioritize over generic AI)
+  if (
+    /\bml\b/i.test(lower) ||
+    /machine\s*learning/i.test(lower) ||
+    /deep\s*learning/i.test(lower) ||
+    /computer\s*vision/i.test(lower) ||
+    /\bnlp\b/i.test(lower) ||
+    /neural/i.test(lower) ||
+    /mlops/i.test(lower)
+  ) {
+    return "Machine Learning Intern";
+  }
+
+  // Data Science
+  if (
+    /data\s*scien/i.test(lower) ||
+    /\bds\b/i.test(lower)
+  ) {
+    return "Data Science Intern";
+  }
+
+  // Data Analyst / Analytics
+  if (
+    /data\s*analy/i.test(lower) ||
+    /business\s*analy/i.test(lower) ||
+    /\bbi\b/i.test(lower) ||
+    /analytics/i.test(lower) ||
+    /power\s*bi/i.test(lower) ||
+    /tableau/i.test(lower)
+  ) {
+    return "Data Analyst Intern";
+  }
+
+  // AI / GenAI / LLM
+  if (
+    /\bai\b/i.test(lower) ||
+    /artificial\s*intelligence/i.test(lower) ||
+    /genai/i.test(lower) ||
+    /generative\s*ai/i.test(lower) ||
+    /\bllm\b/i.test(lower)
+  ) {
+    return "AI Intern";
+  }
+
+  // Backend Developer
+  if (
+    /backend/i.test(lower) ||
+    /back-end/i.test(lower) ||
+    /back\s+end/i.test(lower) ||
+    /node/i.test(lower) ||
+    /django/i.test(lower) ||
+    /fastapi/i.test(lower) ||
+    /flask/i.test(lower) ||
+    /spring/i.test(lower) ||
+    /golang/i.test(lower) ||
+    /\bapi\b/i.test(lower) ||
+    /database/i.test(lower)
+  ) {
+    return "Backend Developer Intern";
+  }
+
+  // Frontend Developer
+  if (
+    /frontend/i.test(lower) ||
+    /front-end/i.test(lower) ||
+    /front\s+end/i.test(lower) ||
+    /react/i.test(lower) ||
+    /vue/i.test(lower) ||
+    /angular/i.test(lower) ||
+    /nextjs/i.test(lower) ||
+    /\bui\b/i.test(lower) ||
+    /\bux\b/i.test(lower) ||
+    /web\s*dev/i.test(lower) ||
+    /html/i.test(lower) ||
+    /css/i.test(lower)
+  ) {
+    return "Frontend Developer Intern";
+  }
+
+  // Python Developer
+  if (/python/i.test(lower)) {
+    return "Python Developer Intern";
+  }
+
+  // Software Engineer / SDE / Fullstack
+  if (
+    /software/i.test(lower) ||
+    /\bsde\b/i.test(lower) ||
+    /\bswe\b/i.test(lower) ||
+    /full\s*stack/i.test(lower) ||
+    /fullstack/i.test(lower) ||
+    /developer/i.test(lower) ||
+    /engineer/i.test(lower) ||
+    /coder/i.test(lower) ||
+    /programmer/i.test(lower)
+  ) {
+    return "Software Engineer Intern";
+  }
+
+  return fallback;
+};
+
+/**
+ * Safely matches a given value to one of the options in a dropdown list.
+ * Supports exact match, inclusion match, and specialized job_title matching.
+ */
+export const matchDropdown = (options, value, fallback) => {
+  if (!value) return fallback || (options && options[0]) || "";
+  if (options === DROPDOWN_OPTIONS.job_title) {
+    return matchJobTitle(value, fallback || DROPDOWN_OPTIONS.job_title[0]);
+  }
+  const exact = options.find((o) => o.toLowerCase() === String(value).toLowerCase());
+  if (exact) return exact;
+  const partial = options.find(
+    (o) =>
+      o.toLowerCase().includes(String(value).toLowerCase()) ||
+      String(value).toLowerCase().includes(o.toLowerCase())
+  );
+  return partial || fallback || options[0];
+};
+
 // Common skill suggestions to assist typing
 export const COMMON_SKILLS_SUGGESTIONS = [
   "Python",

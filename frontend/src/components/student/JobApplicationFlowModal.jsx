@@ -23,22 +23,9 @@ import {
 import { getClassification, getRegression } from "../../api/ml";
 import { applyToJob } from "../../api/applications";
 import { useToast } from "../../context/ToastContext";
-import { DROPDOWN_OPTIONS } from "../../constants/mlOptions";
+import { DROPDOWN_OPTIONS, matchDropdown, matchJobTitle } from "../../constants/mlOptions";
 import FormSelect from "../ml/FormSelect";
 import NumericField from "../ml/NumericField";
-
-// Helper to safely match dropdown values
-const matchDropdown = (options, value, fallback) => {
-  if (!value) return fallback;
-  const exact = options.find((o) => o.toLowerCase() === String(value).toLowerCase());
-  if (exact) return exact;
-  const partial = options.find(
-    (o) =>
-      o.toLowerCase().includes(String(value).toLowerCase()) ||
-      String(value).toLowerCase().includes(o.toLowerCase())
-  );
-  return partial || fallback;
-};
 
 const JobApplicationFlowModal = ({
   job,
@@ -65,7 +52,9 @@ const JobApplicationFlowModal = ({
     : "Python, SQL, Machine Learning";
 
   const companyName = job?.company || "Hiring Partner";
-  const initialRole = job?.role || job?.title || "Data Analyst Intern";
+  const jobDisplayTitle = job?.role || job?.title || job?.jobTitle || "Job Position";
+  const initialRole = job?.role || job?.title || job?.jobTitle || "";
+  const initialReqExp = Number(job?.experienceRequired ?? (parseInt(job?.experience, 10) || 0));
 
   // Form Data initialized according to PDF Specification (Section 2, 4 & 5)
   const [formData, setFormData] = useState(() => ({
@@ -80,7 +69,7 @@ const JobApplicationFlowModal = ({
     candidate_location: matchDropdown(
       DROPDOWN_OPTIONS.job_location,
       studentProfile?.preferredLocation || job?.location,
-      "Gurugram"
+      "Noida"
     ),
     student_year_of_study: Number(studentProfile?.yearOfStudy || 2),
     student_cgpa: Number(studentProfile?.cgpa || 8.2),
@@ -100,9 +89,9 @@ const JobApplicationFlowModal = ({
     student_career_label: "",
 
     // Job Parameters Fields (PDF Page 2)
-    job_title: matchDropdown(DROPDOWN_OPTIONS.job_title, initialRole, "Data Analyst Intern"),
-    required_experience: 0,
-    job_location: matchDropdown(DROPDOWN_OPTIONS.job_location, job?.location, "Gurugram"),
+    job_title: matchJobTitle(initialRole, "Machine Learning Intern"),
+    required_experience: initialReqExp,
+    job_location: matchDropdown(DROPDOWN_OPTIONS.job_location, job?.location, "Noida"),
     work_mode: matchDropdown(
       DROPDOWN_OPTIONS.work_mode,
       job?.workMode === "remote" ? "Remote" : job?.workMode === "onsite" ? "On-site" : "Hybrid",
@@ -112,6 +101,30 @@ const JobApplicationFlowModal = ({
     job_duration_months: 6,
     industry: "Product / SaaS",
   }));
+
+  // Synchronize when job or profile updates
+  useEffect(() => {
+    if (job) {
+      const role = job?.role || job?.title || job?.jobTitle || "";
+      const matchedTitle = matchJobTitle(role, "Machine Learning Intern");
+      const matchedLocation = matchDropdown(DROPDOWN_OPTIONS.job_location, job?.location, "Noida");
+      const matchedWorkMode = matchDropdown(
+        DROPDOWN_OPTIONS.work_mode,
+        job?.workMode === "remote" ? "Remote" : job?.workMode === "onsite" ? "On-site" : "Hybrid",
+        "Hybrid"
+      );
+      const reqExp = Number(job?.experienceRequired ?? (parseInt(job?.experience, 10) || 0));
+
+      setFormData((prev) => ({
+        ...prev,
+        job_title: matchedTitle,
+        job_location: matchedLocation,
+        work_mode: matchedWorkMode,
+        required_experience: reqExp,
+        company_size: matchDropdown(DROPDOWN_OPTIONS.company_size, job?.companySize, prev.company_size || "Medium"),
+      }));
+    }
+  }, [job]);
 
   // Fit & Salary Results
   const [fitResult, setFitResult] = useState(null);
@@ -291,9 +304,14 @@ const JobApplicationFlowModal = ({
               <span className="text-xs text-slate-400">Step {currentStep} of 3</span>
             </div>
             <h2 className="mt-1 text-base sm:text-lg font-bold text-slate-900">
-              Applying for {formData.job_title}
+              Applying for {jobDisplayTitle}
             </h2>
-            <p className="text-xs text-slate-500">{companyName} · {formData.job_location}</p>
+            <p className="text-xs text-slate-500">
+              {companyName} · {formData.job_location}
+              {formData.job_title && jobDisplayTitle.toLowerCase() !== formData.job_title.toLowerCase() ? (
+                <span className="ml-1 text-blue-600 font-medium">({formData.job_title})</span>
+              ) : null}
+            </p>
           </div>
 
           <button
@@ -1092,8 +1110,13 @@ const JobApplicationFlowModal = ({
               <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div>
-                    <h3 className="text-base font-bold text-slate-900">{formData.job_title}</h3>
-                    <p className="text-xs text-slate-500">{companyName} · {formData.job_location} ({formData.work_mode})</p>
+                    <h3 className="text-base font-bold text-slate-900">{jobDisplayTitle}</h3>
+                    <p className="text-xs text-slate-500">
+                      {companyName} · {formData.job_location} ({formData.work_mode})
+                      {formData.job_title && jobDisplayTitle.toLowerCase() !== formData.job_title.toLowerCase() && (
+                        <span className="ml-1.5 text-blue-600 font-medium">· Matched AI Role: {formData.job_title}</span>
+                      )}
+                    </p>
                   </div>
                   <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 border border-blue-100">
                     {formData.industry}

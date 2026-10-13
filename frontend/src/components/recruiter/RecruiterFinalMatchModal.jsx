@@ -19,14 +19,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { getFinalMatch, extractData, parseApiError } from "../../api/ml";
-import { DROPDOWN_OPTIONS, SAMPLE_PAYLOADS } from "../../constants/mlOptions";
-
-// Helper to safely match dropdown values
-const matchDropdown = (options, value, fallback) => {
-  if (!value) return fallback || options[0];
-  const found = options.find((opt) => opt.toLowerCase() === String(value).toLowerCase());
-  return found || fallback || options[0];
-};
+import { DROPDOWN_OPTIONS, SAMPLE_PAYLOADS, matchDropdown, matchJobTitle } from "../../constants/mlOptions";
 
 const RecruiterFinalMatchModal = ({
   applicant,
@@ -47,7 +40,7 @@ const RecruiterFinalMatchModal = ({
     ? applicant.candidateSkills.join(", ")
     : "Python, SQL, Machine Learning, Pandas, NumPy";
 
-  const initialJobTitle = job.title || applicant.role || "Data Science Intern";
+  const initialJobTitle = job.title || applicant.role || "";
   const initialJobSkills = Array.isArray(job.skills) && job.skills.length > 0
     ? job.skills.join(", ")
     : "Python, SQL, Machine Learning";
@@ -84,7 +77,7 @@ const RecruiterFinalMatchModal = ({
     student_interests: "AI, Machine Learning",
 
     // Target Job Parameters (Required / Defaults per PDF)
-    job_title: matchDropdown(DROPDOWN_OPTIONS.job_title, initialJobTitle, "Data Science Intern"),
+    job_title: matchJobTitle(initialJobTitle, "Machine Learning Intern"),
     required_experience: Number(job.experienceRequired ?? 0),
     job_location: matchDropdown(DROPDOWN_OPTIONS.job_location, job.location, "Noida"),
     work_mode: matchDropdown(DROPDOWN_OPTIONS.work_mode, job.workMode, "Hybrid"),
@@ -288,7 +281,10 @@ const RecruiterFinalMatchModal = ({
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Candidate <strong>{candidateName}</strong> · <strong>{formData.job_title}</strong>
+                Candidate <strong>{candidateName}</strong> · <strong>{applicant?.role || job?.title || formData.job_title}</strong>
+                {(applicant?.role || job?.title) && (applicant?.role || job?.title).toLowerCase() !== formData.job_title.toLowerCase() && (
+                  <span className="ml-1 text-cyan-700 font-medium">({formData.job_title})</span>
+                )}
               </p>
             </div>
           </div>
