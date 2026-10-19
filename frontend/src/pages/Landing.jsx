@@ -55,14 +55,6 @@ const Landing = () => {
             </Link>
 
             <Link
-              to="/ml"
-              className="flex items-center justify-center gap-2 rounded-xl border border-blue-600 bg-blue-50 px-5 py-3 text-sm sm:text-base font-semibold text-blue-700 hover:bg-blue-100 transition"
-            >
-              <BrainCircuit size={18} />
-              Try Vertex ML Models
-            </Link>
-
-            <Link
               to="/login"
               className="flex items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm sm:text-base font-semibold text-slate-700 hover:bg-slate-50 transition"
             >
