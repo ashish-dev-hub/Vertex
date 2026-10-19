@@ -1,4 +1,4 @@
-# Vertex — AI-Powered Job & Internship Matching Platform
+# Internmatch AI — AI-Powered Job & Internship Matching Platform
 
 [![React](https://img.shields.io/badge/Frontend-React_19_%7C_Vite_%7C_TailwindCSS-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Node.js](https://img.shields.io/badge/Backend-Node.js_%7C_Express_5-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
