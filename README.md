@@ -7,7 +7,7 @@
 [![Machine Learning](https://img.shields.io/badge/Models-XGBoost_%7C_Scikit--Learn_%7C_TF--IDF-FF6F00?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
 [![Docker](https://img.shields.io/badge/Container-Docker_Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-**Vertex** is an end-to-end, AI-powered hiring and career-matching ecosystem designed to bridge the gap between students seeking internships/jobs and recruiters looking for talent. By leveraging a hybrid multi-model machine learning architecture (Supervised Classification, Regression, and Unsupervised Clustering), Vertex delivers objective, data-driven candidate-job match evaluation, salary benchmarking, and role recommendations.
+**InternMatch AI** is an end-to-end, AI-powered hiring and career-matching ecosystem designed to bridge the gap between students seeking internships/jobs and recruiters looking for talent. By leveraging a hybrid multi-model machine learning architecture (Supervised Classification, Regression, and Unsupervised Clustering), InternMatch AI delivers objective, data-driven candidate-job match evaluation, salary benchmarking, and role recommendations.
 
 ---
 
